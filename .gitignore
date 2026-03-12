@@ -26,3 +26,6 @@ Thumbs.db
 
 # Environment files
 .env
+
+*.txt
+*.ps1
