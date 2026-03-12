@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — Content | Rajasthan Exams</title>
+    <script src="/admin-auth.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a237e;
+            --primary-light: #3949ab;
+            --accent: #ffd700;
+            --sidebar-width: 240px;
+        }
+
+        body {
+            background: #f0f2f5;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, #1a237e 0%, #283593 100%);
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, .15);
+            z-index: 100;
+        }
+
+        .sidebar-brand {
+            padding: 20px 24px;
+            background: rgba(0, 0, 0, .2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ffd700;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .sidebar-nav {
+            padding: 16px 0;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            color: rgba(255, 255, 255, .75);
+            text-decoration: none;
+            transition: all .2s;
+            font-size: .93rem;
+        }
+
+        .sidebar-link:hover,
+        .sidebar-link.active {
+            background: rgba(255, 255, 255, .15);
+            color: #fff;
+        }
+
+        .sidebar-link.active {
+            border-left: 3px solid #ffd700;
+        }
+
+        .sidebar-link i {
+            font-size: 1.1rem;
+            width: 20px;
+        }
+
+        /* Main */
+        .main {
+            margin-left: var(--sidebar-width);
+            padding: 32px;
+        }
+
+        /* Stat Cards */
+        .stat-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, .08);
+            padding: 20px 22px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+        }
+
+        .stat-label {
+            font-size: .78rem;
+            color: #6c757d;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .stat-value {
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: #1a237e;
+            line-height: 1.1;
+        }
+
+        /* Page title */
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a237e;
+            margin: 0;
+        }
+
+        .page-subtitle {
+            font-size: .85rem;
+            color: #6c757d;
+        }
+
+        /* Category pill */
+        .cat-pill {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: .75rem;
+            font-weight: 700;
+            letter-spacing: .4px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        /* Exam card */
+        .exam-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .07);
+            border: none;
+            margin-bottom: 16px;
+            overflow: hidden;
+            transition: box-shadow .2s;
+        }
+
+        .exam-card:hover {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, .12);
+        }
+
+        .exam-header {
+            padding: 16px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            border-bottom: 1px solid transparent;
+            transition: background .15s;
+        }
+
+        .exam-header:hover {
+            background: #f8f9ff;
+        }
+
+        .exam-header.open {
+            border-bottom-color: #e9ecef;
+            background: #f8f9ff;
+        }
+
+        .exam-avatar {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #1a237e, #3949ab);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 800;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .exam-title {
+            font-weight: 700;
+            font-size: .97rem;
+            color: #1a237e;
+            margin-bottom: 2px;
+        }
+
+        .exam-meta {
+            font-size: .78rem;
+            color: #6c757d;
+        }
+
+        .exam-badges {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .badge-premium {
+            background: #fff8e1;
+            color: #f57f17;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: .74rem;
+            font-weight: 700;
+        }
+
+        .badge-free {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: .74rem;
+            font-weight: 700;
+        }
+
+        .badge-count {
+            background: #e8eaf6;
+            color: #1a237e;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: .74rem;
+            font-weight: 700;
+        }
+
+        .chevron {
+            color: #9e9e9e;
+            transition: transform .3s;
+            font-size: 1.1rem;
+        }
+
+        .chevron.open {
+            transform: rotate(180deg);
+        }
+
+        /* Tests table inside exam */
+        .tests-panel {
+            padding: 0 20px 16px;
+        }
+
+        .test-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1.5px solid #e9ecef;
+            margin-top: 8px;
+            font-size: .85rem;
+            transition: border-color .15s;
+        }
+
+        .test-row:hover {
+            border-color: #c5cae9;
+            background: #f8f9ff;
+        }
+
+        .test-type-badge {
+            padding: 2px 9px;
+            border-radius: 6px;
+            font-size: .7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .3px;
+            flex-shrink: 0;
+            min-width: 56px;
+            text-align: center;
+        }
+
+        .type-MOCK {
+            background: #e3f2fd;
+            color: #0d47a1;
+        }
+
+        .type-PYQ {
+            background: #f3e5f5;
+            color: #6a1b9a;
+        }
+
+        .type-CHAPTER {
+            background: #e8f5e9;
+            color: #1b5e20;
+        }
+
+        .type-FULL {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .type-SUBJECT {
+            background: #fce4ec;
+            color: #880e4f;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #f44336;
+            animation: blink 1.2s infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .3
+            }
+        }
+
+        .test-title {
+            font-weight: 600;
+            color: #212529;
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .test-detail {
+            color: #6c757d;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        /* Filter bar */
+        .filter-bar {
+            background: #fff;
+            border-radius: 12px;
+            padding: 14px 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        /* No tests */
+        .no-tests {
+            color: #9e9e9e;
+            font-size: .84rem;
+            padding: 10px 0 4px;
+            text-align: center;
+        }
+
+        /* Category section heading */
+        .cat-heading {
+            font-size: .78rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #6c757d;
+            padding: 8px 4px 6px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cat-heading::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 9999;
+        }
+
+        /* Form controls */
+        .form-control,
+        .form-select {
+            border: 1.5px solid #dee2e6;
+            border-radius: 8px;
+            font-size: .88rem;
+            padding: 7px 12px;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #3949ab;
+            box-shadow: 0 0 0 3px rgba(57, 73, 171, .1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-brand"><i class="bi bi-mortarboard-fill"></i> Rajasthan Exams</div>
+        <nav class="sidebar-nav">
+            <a href="/admin" class="sidebar-link"><i class="bi bi-grid"></i> Dashboard</a>
+            <a href="#" class="sidebar-link" onclick="expandExamForm()"><i class="bi bi-journal-plus"></i> Create
+                Exam</a>
+            <a href="/admin/tests" class="sidebar-link"><i class="bi bi-clipboard-check"></i> Create Test</a>
+            <a href="/admin/content" class="sidebar-link active"><i class="bi bi-collection"></i> Content</a>
+            <a href="/admin/payments" class="sidebar-link"><i class="bi bi-credit-card"></i> Payments</a>
+            <a href="/admin/reports" class="sidebar-link"><i class="bi bi-bug"></i> Bug Reports</a>
+            <div style="height:1px;background:rgba(255,255,255,.1);margin:12px 20px;"></div>
+            <a href="/swagger-ui.html" class="sidebar-link" target="_blank"><i class="bi bi-code-slash"></i> API
+                Docs</a>
+            <a href="#" class="sidebar-link" style="color:#ff8a80;" onclick="adminLogout()"><i
+                    class="bi bi-box-arrow-right"></i> Logout</a>
+        </nav>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+
+        <!-- Page Header -->
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h1 class="page-title"><i class="bi bi-collection me-2"></i>Content Dashboard</h1>
+                <div class="page-subtitle">All exams &amp; tests grouped by category</div>
+            </div>
+            <button class="btn btn-outline-secondary btn-sm" onclick="loadAll()">
+                <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+            </button>
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="row g-3 mb-4" id="stats-row">
+            <div class="col-6 col-xl-3">
+                <div class="stat-card">
+                    <div class="stat-icon bg-primary bg-opacity-10"><i class="bi bi-journals text-primary"></i></div>
+                    <div>
+                        <div class="stat-label">Total Exams</div>
+                        <div class="stat-value" id="stat-exams">—</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#e8f5e9"><i
+                            class="bi bi-clipboard-check text-success fs-4"></i></div>
+                    <div>
+                        <div class="stat-label">Total Tests</div>
+                        <div class="stat-value" id="stat-tests">—</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#fff3cd"><i
+                            class="bi bi-question-circle text-warning fs-4"></i></div>
+                    <div>
+                        <div class="stat-label">Total Questions</div>
+                        <div class="stat-value" id="stat-questions">—</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-xl-3">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#f3e5f5"><i class="bi bi-tag text-purple fs-4"
+                            style="color:#7b1fa2;"></i></div>
+                    <div>
+                        <div class="stat-label">Categories</div>
+                        <div class="stat-value" id="stat-cats">—</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <input type="text" id="search-input" class="form-control" style="width:220px;"
+                placeholder="🔍 Search exam or test..." oninput="renderExams()">
+            <select id="cat-filter" class="form-select" style="width:160px;" onchange="renderExams()">
+                <option value="">All Categories</option>
+            </select>
+            <select id="type-filter" class="form-select" style="width:150px;" onchange="renderExams()">
+                <option value="">All Test Types</option>
+                <option value="MOCK">Mock</option>
+                <option value="PYQ">PYQ</option>
+                <option value="CHAPTER">Chapter</option>
+                <option value="FULL">Full</option>
+                <option value="SUBJECT">Subject</option>
+            </select>
+            <label class="d-flex align-items-center gap-2 ms-2" style="font-size:.88rem;color:#495057;cursor:pointer;">
+                <input type="checkbox" id="premium-filter" onchange="renderExams()"> Premium only
+            </label>
+            <span class="ms-auto text-muted" style="font-size:.82rem;" id="result-count"></span>
+        </div>
+
+        <!-- Exam List -->
+        <div id="exam-list">
+            <div class="text-center text-muted py-5">
+                <div class="spinner-border" style="width:2rem;height:2rem;"></div>
+                <div class="mt-2">Loading content...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-container">
+        <div id="main-toast" class="toast align-items-center border-0" role="alert" data-bs-autohide="true"
+            data-bs-delay="3500">
+            <div class="d-flex">
+                <div class="toast-body fw-semibold" id="toast-msg">Done!</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API = '/api';
+        let allData = null; // raw response from server
+        let expandedExamIds = new Set();
+
+        // Category colours (cycle through palette)
+        const CAT_COLORS = [
+            ['#e8eaf6', '#3f51b5'], ['#fce4ec', '#c2185b'], ['#e0f7fa', '#00838f'],
+            ['#f3e5f5', '#7b1fa2'], ['#fff3e0', '#e65100'], ['#e8f5e9', '#2e7d32'],
+            ['#fafafa', '#424242'], ['#fff8e1', '#f9a825']
+        ];
+        const catColorMap = {};
+        let colorIdx = 0;
+        function catColors(cat) {
+            if (!catColorMap[cat]) {
+                catColorMap[cat] = CAT_COLORS[colorIdx++ % CAT_COLORS.length];
+            }
+            return catColorMap[cat];
+        }
+
+        // ── Init ──────────────────────────────────────────────────────────────
+        window.onload = () => loadAll();
+
+        async function loadAll() {
+            document.getElementById('exam-list').innerHTML = `
+                <div class="text-center text-muted py-5">
+                    <div class="spinner-border" style="width:2rem;height:2rem;"></div>
+                    <div class="mt-2">Loading content...</div>
+                </div>`;
+            try {
+                const res = await fetch(`${API}/admin/content/overview`, {
+                    headers: { 'Authorization': `Bearer ${getAdminToken()}` }
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                allData = await res.json();
+                updateStats();
+                populateCategoryFilter();
+                renderExams();
+            } catch (e) {
+                document.getElementById('exam-list').innerHTML =
+                    `<div class="text-center text-danger py-5"><i class="bi bi-exclamation-triangle fs-2"></i><div class="mt-2">Failed to load: ${e.message}</div></div>`;
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('stat-exams').textContent = allData.totalExams;
+            document.getElementById('stat-tests').textContent = allData.totalTests;
+            document.getElementById('stat-questions').textContent = allData.totalQuestions.toLocaleString();
+            document.getElementById('stat-cats').textContent = allData.categories;
+        }
+
+        function populateCategoryFilter() {
+            const sel = document.getElementById('cat-filter');
+            const cats = Object.keys(allData.categoryCounts || {}).sort();
+            cats.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c; opt.textContent = `${c} (${allData.categoryCounts[c]})`;
+                sel.appendChild(opt);
+            });
+        }
+
+        // ── Render ────────────────────────────────────────────────────────────
+        function renderExams() {
+            if (!allData) return;
+
+            const q = document.getElementById('search-input').value.toLowerCase().trim();
+            const catFilter = document.getElementById('cat-filter').value;
+            const typeFilter = document.getElementById('type-filter').value;
+            const premFilter = document.getElementById('premium-filter').checked;
+
+            // Filter exams
+            let exams = allData.exams.filter(e => {
+                if (catFilter && e.category !== catFilter) return false;
+                if (premFilter && !e.isPremium) return false;
+                // Search in exam title or any test title
+                if (q) {
+                    const inTitle = e.title.toLowerCase().includes(q);
+                    const inTests = (e.tests || []).some(t => t.title.toLowerCase().includes(q));
+                    if (!inTitle && !inTests) return false;
+                }
+                return true;
+            });
+
+            // Further filter tests inside each exam by typeFilter / search
+            exams = exams.map(e => {
+                let tests = (e.tests || []).filter(t => {
+                    if (typeFilter && t.type !== typeFilter) return false;
+                    if (q && !e.title.toLowerCase().includes(q) && !t.title.toLowerCase().includes(q)) return false;
+                    return true;
+                });
+                return { ...e, _filteredTests: tests };
+            });
+
+            document.getElementById('result-count').textContent =
+                `${exams.length} exam${exams.length !== 1 ? 's' : ''}`;
+
+            if (exams.length === 0) {
+                document.getElementById('exam-list').innerHTML =
+                    `<div class="text-center text-muted py-5"><i class="bi bi-search fs-2"></i><div class="mt-2">No exams match your filters.</div></div>`;
+                return;
+            }
+
+            // Group by category
+            const grouped = {};
+            exams.forEach(e => {
+                if (!grouped[e.category]) grouped[e.category] = [];
+                grouped[e.category].push(e);
+            });
+
+            let html = '';
+            Object.keys(grouped).sort().forEach(cat => {
+                const [bg, fg] = catColors(cat);
+                html += `<div class="cat-heading"><span class="cat-pill" style="background:${bg};color:${fg};">${cat}</span></div>`;
+                grouped[cat].forEach(e => {
+                    html += examCard(e, e._filteredTests);
+                });
+            });
+
+            document.getElementById('exam-list').innerHTML = html;
+        }
+
+        function examCard(e, filteredTests) {
+            const initials = e.title.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+            const isOpen = expandedExamIds.has(e.id);
+            const discountedPrice = e.discountPercent > 0
+                ? Math.round(e.price * (1 - e.discountPercent / 100))
+                : e.price;
+            const priceStr = e.isPremium
+                ? (e.discountPercent > 0
+                    ? `₹${discountedPrice} <s style="font-size:.7rem;opacity:.6;">₹${Math.round(e.price)}</s>`
+                    : `₹${Math.round(e.price)}`)
+                : 'Free';
+
+            const testsHtml = filteredTests.length === 0
+                ? `<div class="no-tests"><i class="bi bi-inbox me-1"></i>No tests here yet</div>`
+                : filteredTests.map(t => testRow(t)).join('');
+
+            return `
+            <div class="exam-card" id="exam-${e.id}">
+                <div class="exam-header ${isOpen ? 'open' : ''}" onclick="toggleExam('${e.id}')">
+                    <div class="exam-avatar">${initials}</div>
+                    <div style="min-width:0;flex:1;">
+                        <div class="exam-title">${e.title}</div>
+                        <div class="exam-meta">
+                            ${filteredTests.length} test${filteredTests.length !== 1 ? 's' : ''}
+                            · ${e.questionCount} question${e.questionCount !== 1 ? 's' : ''}
+                            · ${priceStr}
+                            ${e.discountPercent > 0 ? `· <span style="color:#2e7d32;font-weight:600;">${e.discountPercent}% off</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="exam-badges">
+                        <span class="${e.isPremium ? 'badge-premium' : 'badge-free'}">${e.isPremium ? '🔒 Premium' : '✓ Free'}</span>
+                        <span class="badge-count">${filteredTests.length} tests</span>
+                        <i class="bi bi-chevron-down chevron ${isOpen ? 'open' : ''}"></i>
+                    </div>
+                </div>
+                <div class="tests-panel" id="tests-${e.id}" style="display:${isOpen ? 'block' : 'none'};">
+                    ${testsHtml}
+                </div>
+            </div>`;
+        }
+
+        function testRow(t) {
+            const typeCls = `type-${t.type}`;
+            const liveDot = t.isLive ? `<span class="live-dot" title="Live"></span>` : '';
+            const lockBadge = t.isPremium ? `<i class="bi bi-lock-fill text-warning" title="Premium" style="font-size:.8rem;"></i>` : '';
+            return `
+            <div class="test-row">
+                ${liveDot}
+                <span class="test-type-badge ${typeCls}">${t.type}</span>
+                <span class="test-title">${t.title}</span>
+                ${lockBadge}
+                <span class="test-detail"><i class="bi bi-question-circle me-1"></i>${t.totalQuestions} Q</span>
+                <span class="test-detail"><i class="bi bi-clock me-1"></i>${t.durationMinutes} min</span>
+            </div>`;
+        }
+
+        function toggleExam(id) {
+            const panel = document.getElementById(`tests-${id}`);
+            const header = document.querySelector(`#exam-${id} .exam-header`);
+            const chevron = document.querySelector(`#exam-${id} .chevron`);
+            if (expandedExamIds.has(id)) {
+                expandedExamIds.delete(id);
+                panel.style.display = 'none';
+                header.classList.remove('open');
+                chevron.classList.remove('open');
+            } else {
+                expandedExamIds.add(id);
+                panel.style.display = 'block';
+                header.classList.add('open');
+                chevron.classList.add('open');
+            }
+        }
+
+        function showToast(msg, type = 'success') {
+            const el = document.getElementById('main-toast');
+            el.className = `toast align-items-center text-white border-0 bg-${type}`;
+            document.getElementById('toast-msg').textContent = msg;
+            new bootstrap.Toast(el).show();
+        }
+    </script>
+</body>
+
+</html>

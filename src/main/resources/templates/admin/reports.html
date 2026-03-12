@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bug Reports — Admin | Rajasthan Exams</title>
+    <script src="/admin-auth.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-width: 240px;
+        }
+
+        body {
+            background: #f0f2f5;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, #1a237e 0%, #283593 100%);
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+            z-index: 100;
+        }
+
+        .sidebar-brand {
+            padding: 20px 24px;
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ffd700;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .sidebar-brand i {
+            font-size: 1.4rem;
+        }
+
+        .sidebar-nav {
+            padding: 16px 0;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            color: rgba(255, 255, 255, 0.75);
+            text-decoration: none;
+            transition: all 0.2s;
+            font-size: 0.93rem;
+        }
+
+        .sidebar-link:hover,
+        .sidebar-link.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+
+        .sidebar-link.active {
+            border-left: 3px solid #ffd700;
+        }
+
+        .sidebar-link i {
+            font-size: 1.1rem;
+            width: 20px;
+        }
+
+        /* Main */
+        .main {
+            margin-left: var(--sidebar-width);
+            padding: 32px;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a237e;
+            margin: 0 0 4px 0;
+        }
+
+        .page-subtitle {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-bottom: 24px;
+        }
+
+        .card-custom {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            border: none;
+        }
+
+        .card-header-custom {
+            padding: 18px 24px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-header-custom h5 {
+            margin: 0;
+            font-weight: 600;
+            color: #1a237e;
+            font-size: 1rem;
+        }
+
+        .card-header-custom i {
+            color: #3949ab;
+            font-size: 1.1rem;
+        }
+
+        .table th {
+            background: #f8f9ff;
+            color: #1a237e;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 12px 16px;
+            border: none;
+            font-weight: 600;
+        }
+
+        .table td {
+            padding: 13px 16px;
+            vertical-align: middle;
+            font-size: 0.88rem;
+            border-bottom: 1px solid #f0f2f5;
+        }
+
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table tbody tr:hover td {
+            background: #f8f9ff;
+        }
+
+        .badge-bug {
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        code {
+            font-size: 0.75rem;
+            background: #f0f2f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #3949ab;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <i class="bi bi-mortarboard-fill"></i>
+            Rajasthan Exams
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/admin" class="sidebar-link"><i class="bi bi-grid"></i> Dashboard</a>
+            <a href="/admin/tests" class="sidebar-link"><i class="bi bi-clipboard-check"></i> Create Test</a>
+            <a href="/admin/content" class="sidebar-link"><i class="bi bi-collection"></i> Content</a>
+            <a href="/admin/news" class="sidebar-link"><i class="bi bi-newspaper"></i> Current Affairs</a>
+            <a href="/admin/notifications" class="sidebar-link"><i class="bi bi-bell"></i> Notifications</a>
+            <a href="/admin/payments" class="sidebar-link"><i class="bi bi-credit-card"></i> Payments</a>
+            <a href="/admin/reports" class="sidebar-link active"><i class="bi bi-bug"></i> Bug Reports</a>
+            <div style="height:1px;background:rgba(255,255,255,0.1);margin:12px 20px;"></div>
+            <a href="/swagger-ui.html" class="sidebar-link" target="_blank"><i class="bi bi-code-slash"></i> API
+                Docs</a>
+            <a href="#" class="sidebar-link" style="color:#ff8a80;" onclick="adminLogout()"><i
+                    class="bi bi-box-arrow-right"></i> Logout</a>
+        </nav>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+        <h1 class="page-title"><i class="bi bi-bug me-2"></i>Bug Reports</h1>
+        <div class="page-subtitle">Question issues reported by app users</div>
+
+        <div class="card-custom">
+            <div class="card-header-custom">
+                <i class="bi bi-list-ul"></i>
+                <h5>All Reports</h5>
+                <span class="badge bg-primary ms-auto" th:text="${#lists.size(reports)}">0</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>User</th>
+                            <th>Test ID</th>
+                            <th>Question ID</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="report, iter : ${reports}">
+                            <td class="text-muted" th:text="${iter.count}">1</td>
+                            <td th:text="${#temporals.format(report.createdAt, 'dd MMM yyyy, HH:mm')}">Date</td>
+                            <td>
+                                <span class="badge badge-bug bg-warning text-dark"
+                                    th:text="${report.bugType}">Type</span>
+                            </td>
+                            <td>
+                                <span class="fw-semibold" th:text="${report.userId}">User</span>
+                            </td>
+                            <td><code th:text="${#strings.abbreviate(report.testId.toString(), 12)}">TestID</code></td>
+                            <td><code th:text="${#strings.abbreviate(report.questionId.toString(), 12)}">QID</code></td>
+                            <td th:text="${report.description}">Description</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(reports)}">
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                                No reports found.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,3 @@
+textEn,textHi,optA_En,optB_En,optC_En,optD_En,optA_Hi,optB_Hi,optC_Hi,optD_Hi,correctIndex,solutionEn,solutionHi
+"What is the capital of Rajasthan?","राजस्थान की राजधानी क्या है?","Jaipur","Jodhpur","Udaipur","Ajmer","जयपुर","जोधपुर","उदयपुर","अजमेर",0,"Jaipur is the capital city of Rajasthan.","जयपुर राजस्थान की राजधानी है।"
+"Which river is known as the lifeline of Rajasthan?","किस नदी को राजस्थान की जीवन रेखा कहा जाता है?","Ganga","Yamuna","Indira Gandhi Canal","Chambal","गंगा","यमुना","इंदिरा गांधी नहर","चंबल",2,"The Indira Gandhi Canal is vital for irrigation in Rajasthan.","इंदिरा गांधी नहर राजस्थान में सिंचाई के लिए महत्वपूर्ण है।"

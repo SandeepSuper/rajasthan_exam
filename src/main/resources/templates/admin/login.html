@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | Rajasthan Exams</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a237e 0%, #283593 60%, #3949ab 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .login-card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, .25);
+            width: 100%;
+            max-width: 420px;
+            padding: 48px 40px;
+            animation: popIn .4s cubic-bezier(.34, 1.56, .64, 1);
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(.92) translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .brand-row {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .brand-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #1a237e, #3949ab);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px;
+            box-shadow: 0 8px 24px rgba(26, 35, 126, .3);
+        }
+
+        .brand-icon i {
+            font-size: 2rem;
+            color: #ffd700;
+        }
+
+        .brand-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1a237e;
+        }
+
+        .brand-sub {
+            font-size: .82rem;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: .85rem;
+            color: #495057;
+        }
+
+        .form-control {
+            border: 1.5px solid #dee2e6;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: .93rem;
+            transition: border-color .2s, box-shadow .2s;
+        }
+
+        .form-control:focus {
+            border-color: #3949ab;
+            box-shadow: 0 0 0 3px rgba(57, 73, 171, .12);
+        }
+
+        .input-group .form-control {
+            border-right: none;
+            border-radius: 10px 0 0 10px;
+        }
+
+        .input-group .btn-toggle {
+            border: 1.5px solid #dee2e6;
+            border-left: none;
+            border-radius: 0 10px 10px 0;
+            background: #f8f9ff;
+            color: #6c757d;
+            padding: 0 14px;
+            cursor: pointer;
+            transition: background .2s;
+        }
+
+        .input-group .btn-toggle:hover {
+            background: #e8eaf6;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #1a237e, #3949ab);
+            border: none;
+            color: #fff;
+            border-radius: 10px;
+            padding: 13px;
+            font-size: 1rem;
+            font-weight: 700;
+            width: 100%;
+            margin-top: 8px;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(26, 35, 126, .35);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .btn-login:disabled {
+            opacity: .65;
+            transform: none;
+        }
+
+        .error-box {
+            background: #ffebee;
+            border: 1px solid #ef9a9a;
+            border-radius: 8px;
+            color: #c62828;
+            font-size: .85rem;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .footer-note {
+            font-size: .75rem;
+            color: #adb5bd;
+            text-align: center;
+            margin-top: 24px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-card">
+        <div class="brand-row">
+            <div class="brand-icon"><i class="bi bi-mortarboard-fill"></i></div>
+            <div class="brand-title">Rajasthan Exams</div>
+            <div class="brand-sub">Admin Panel &mdash; Sign in to continue</div>
+        </div>
+
+        <div class="error-box" id="error-box">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            <span id="error-msg">Invalid username or password.</span>
+        </div>
+
+        <form id="login-form" onsubmit="doLogin(event)">
+            <div class="mb-3">
+                <label class="form-label" for="username"><i class="bi bi-person me-1"></i>Username</label>
+                <input type="text" class="form-control" id="username" placeholder="Enter admin username"
+                    autocomplete="username" required autofocus>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label" for="password"><i class="bi bi-lock me-1"></i>Password</label>
+                <div class="input-group">
+                    <input type="password" class="form-control" id="password" placeholder="Enter password"
+                        autocomplete="current-password" required>
+                    <button type="button" class="btn-toggle" onclick="togglePwd()" title="Show / Hide">
+                        <i class="bi bi-eye" id="eye-icon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-login" id="login-btn">
+                <i class="bi bi-box-arrow-in-right"></i> Sign In
+            </button>
+        </form>
+
+        <div class="footer-note">Secure admin access &middot; Rajasthan Exams &copy; 2025</div>
+    </div>
+
+    <script>
+        // If already logged in with valid token → redirect to dashboard
+        (function () {
+            const token = localStorage.getItem('admin_jwt');
+            if (token) {
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    if (payload.exp && Date.now() < payload.exp * 1000 - 30000) {
+                        window.location.href = '/admin/tests';
+                    }
+                } catch (e) { /* ignore */ }
+            }
+        })();
+
+        async function doLogin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('login-btn');
+            const errorBox = document.getElementById('error-box');
+            errorBox.style.display = 'none';
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Signing in…';
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            try {
+                const res = await fetch('/api/admin-auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    localStorage.setItem('admin_jwt', data.token);
+                    // Redirect to dashboard
+                    window.location.href = '/admin/tests';
+                } else {
+                    const err = await res.json().catch(() => ({}));
+                    showError(err.error || 'Invalid username or password.');
+                }
+            } catch (e) {
+                showError('Network error. Is the server running?');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-box-arrow-in-right"></i> Sign In';
+            }
+        }
+
+        function showError(msg) {
+            document.getElementById('error-msg').textContent = msg;
+            document.getElementById('error-box').style.display = 'block';
+        }
+
+        function togglePwd() {
+            const pwd = document.getElementById('password');
+            const ico = document.getElementById('eye-icon');
+            if (pwd.type === 'password') {
+                pwd.type = 'text';
+                ico.className = 'bi bi-eye-slash';
+            } else {
+                pwd.type = 'password';
+                ico.className = 'bi bi-eye';
+            }
+        }
+    </script>
+</body>
+
+</html>

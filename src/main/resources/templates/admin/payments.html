@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — Payments | Rajasthan Exams</title>
+    <script src="/admin-auth.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a237e;
+            --primary-light: #3949ab;
+            --accent: #ffd700;
+            --sidebar-width: 240px;
+        }
+
+        body {
+            background: #f0f2f5;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, #1a237e 0%, #283593 100%);
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, .15);
+            z-index: 100;
+        }
+
+        .sidebar-brand {
+            padding: 20px 24px;
+            background: rgba(0, 0, 0, .2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ffd700;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .sidebar-nav {
+            padding: 16px 0;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            color: rgba(255, 255, 255, .75);
+            text-decoration: none;
+            transition: all .2s;
+            font-size: .93rem;
+        }
+
+        .sidebar-link:hover,
+        .sidebar-link.active {
+            background: rgba(255, 255, 255, .15);
+            color: #fff;
+        }
+
+        .sidebar-link.active {
+            border-left: 3px solid #ffd700;
+        }
+
+        .sidebar-link i {
+            font-size: 1.1rem;
+            width: 20px;
+        }
+
+        /* Main */
+        .main {
+            margin-left: var(--sidebar-width);
+            padding: 32px;
+        }
+
+        /* Auth Banner */
+        #auth-banner {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Stat Cards */
+        .stat-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, .08);
+            padding: 22px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stat-label {
+            font-size: .8rem;
+            color: #6c757d;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .stat-value {
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: #1a237e;
+            line-height: 1.1;
+        }
+
+        /* Card */
+        .card-custom {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, .08);
+            border: none;
+            margin-bottom: 24px;
+        }
+
+        .card-header-custom {
+            padding: 18px 24px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-header-custom h5 {
+            margin: 0;
+            font-weight: 600;
+            color: #1a237e;
+            font-size: 1rem;
+        }
+
+        .card-header-custom i {
+            color: #3949ab;
+            font-size: 1.1rem;
+        }
+
+        .card-body-custom {
+            padding: 24px;
+        }
+
+        /* Table */
+        .table-custom {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .table-custom th {
+            background: #f8f9ff;
+            color: #1a237e;
+            font-size: .82rem;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            padding: 12px 16px;
+            border: none;
+        }
+
+        .table-custom td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f2f5;
+            vertical-align: middle;
+            font-size: .88rem;
+        }
+
+        .table-custom tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table-custom tr:hover td {
+            background: #f8f9ff;
+        }
+
+        /* Form */
+        .form-control,
+        .form-select {
+            border: 1.5px solid #dee2e6;
+            border-radius: 8px;
+            font-size: .92rem;
+            padding: 9px 13px;
+            transition: border-color .2s, box-shadow .2s;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #3949ab;
+            box-shadow: 0 0 0 3px rgba(57, 73, 171, .1);
+        }
+
+        .form-label {
+            font-weight: 500;
+            font-size: .88rem;
+            color: #495057;
+            margin-bottom: 4px;
+        }
+
+        /* Buttons */
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #1a237e, #3949ab);
+            border: none;
+            color: #fff;
+            border-radius: 8px;
+            padding: 8px 20px;
+            font-weight: 600;
+            transition: all .2s;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(57, 73, 171, .4);
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 9999;
+        }
+
+        /* Revenue bar */
+        .rev-bar-wrap {
+            background: #f0f2f5;
+            border-radius: 6px;
+            height: 10px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .rev-bar {
+            background: linear-gradient(90deg, #1a237e, #3949ab);
+            height: 100%;
+            border-radius: 6px;
+            transition: width .6s;
+        }
+
+        /* Status badge colours */
+        .badge-status-PAID {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .badge-status-CREATED {
+            background: #fff8e1;
+            color: #f57f17;
+        }
+
+        .badge-status-FAILED {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a237e;
+            margin: 0;
+        }
+
+        .page-subtitle {
+            font-size: .85rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <i class="bi bi-mortarboard-fill"></i> Rajasthan Exams
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/admin" class="sidebar-link"><i class="bi bi-grid"></i> Dashboard</a>
+            <a href="#" class="sidebar-link" onclick="expandExamForm()"><i class="bi bi-journal-plus"></i> Create
+                Exam</a>
+            <a href="/admin/tests" class="sidebar-link"><i class="bi bi-clipboard-check"></i> Create Test</a>
+            <a href="/admin/content" class="sidebar-link"><i class="bi bi-collection"></i> Content</a>
+            <a href="/admin/payments" class="sidebar-link active"><i class="bi bi-credit-card"></i> Payments</a>
+            <a href="/admin/reports" class="sidebar-link"><i class="bi bi-bug"></i> Bug Reports</a>
+            <div style="height:1px;background:rgba(255,255,255,.1);margin:12px 20px;"></div>
+            <a href="/swagger-ui.html" class="sidebar-link" target="_blank"><i class="bi bi-code-slash"></i> API
+                Docs</a>
+            <a href="#" class="sidebar-link" style="color:#ff8a80;" onclick="adminLogout()"><i
+                    class="bi bi-box-arrow-right"></i> Logout</a>
+        </nav>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+
+        <!-- Page Header -->
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h1 class="page-title"><i class="bi bi-credit-card me-2"></i>Payment Dashboard</h1>
+                <div class="page-subtitle">Revenue, orders & exam discount management</div>
+            </div>
+            <button class="btn btn-outline-secondary btn-sm" onclick="loadAll()">
+                <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+            </button>
+        </div>
+
+        <!-- ── Stat Cards ────────────────────────────────────────────────── -->
+        <div class="row g-3 mb-4" id="stats-row">
+            <div class="col-sm-6 col-xl-3">
+                <div class="stat-card">
+                    <div class="stat-icon bg-primary bg-opacity-10"><i class="bi bi-currency-rupee text-primary"></i>
+                    </div>
+                    <div>
+                        <div class="stat-label">Total Revenue</div>
+                        <div class="stat-value" id="stat-revenue">—</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#e8f5e9"><i
+                            class="bi bi-check-circle text-success fs-4"></i></div>
+                    <div>
+                        <div class="stat-label">Paid Orders</div>
+                        <div class="stat-value" id="stat-paid">—</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#fff3cd"><i
+                            class="bi bi-hourglass-split text-warning fs-4"></i></div>
+                    <div>
+                        <div class="stat-label">Pending</div>
+                        <div class="stat-value" id="stat-pending">—</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#ffebee"><i class="bi bi-x-circle text-danger fs-4"></i>
+                    </div>
+                    <div>
+                        <div class="stat-label">Failed</div>
+                        <div class="stat-value" id="stat-failed">—</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+
+            <!-- ── Revenue by Exam ──────────────────────────────────────── -->
+            <div class="col-lg-5">
+                <div class="card-custom">
+                    <div class="card-header-custom">
+                        <i class="bi bi-bar-chart-line"></i>
+                        <h5>Revenue by Exam</h5>
+                    </div>
+                    <div class="card-body-custom" id="revenue-chart">
+                        <div class="text-center text-muted py-4">
+                            <div class="spinner-border spinner-border-sm"></div> Loading...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Discount Management ──────────────────────────────── -->
+                <div class="card-custom">
+                    <div class="card-header-custom">
+                        <i class="bi bi-tag"></i>
+                        <h5>Exam Price &amp; Discount Manager</h5>
+                    </div>
+                    <div class="card-body-custom">
+                        <p class="text-muted" style="font-size:.85rem;">Set the base price and discount % per exam. The
+                            app will show the original price as strikethrough and display the discounted price to users.
+                        </p>
+                        <div id="discount-list">
+                            <div class="text-center text-muted py-3">
+                                <div class="spinner-border spinner-border-sm"></div> Loading exams...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Orders Table ───────────────────────────────────────────── -->
+            <div class="col-lg-7">
+                <div class="card-custom">
+                    <div class="card-header-custom">
+                        <i class="bi bi-receipt"></i>
+                        <h5>All Orders</h5>
+                        <span class="badge bg-primary ms-auto" id="order-count">0</span>
+                    </div>
+
+                    <!-- Filter Row -->
+                    <div class="px-4 pt-3 pb-1 d-flex gap-2 align-items-center flex-wrap">
+                        <select class="form-select form-select-sm" id="filter-status" style="width:140px;"
+                            onchange="filterOrders()">
+                            <option value="">All Status</option>
+                            <option value="PAID">Paid</option>
+                            <option value="CREATED">Pending</option>
+                            <option value="FAILED">Failed</option>
+                        </select>
+                        <input type="text" class="form-control form-control-sm" id="filter-search" style="width:200px;"
+                            placeholder="Search exam / user..." oninput="filterOrders()">
+                    </div>
+
+                    <div class="card-body-custom p-0">
+                        <div class="table-responsive">
+                            <table class="table table-custom mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Exam</th>
+                                        <th>User</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orders-tbody">
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">
+                                            <div class="spinner-border spinner-border-sm me-2"></div>Loading orders...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-container">
+        <div id="main-toast" class="toast align-items-center border-0" role="alert" data-bs-autohide="true"
+            data-bs-delay="4000">
+            <div class="d-flex">
+                <div class="toast-body fw-semibold" id="toast-msg">Done!</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API = '/api';
+        let allOrders = [];
+
+        // ── Init ──────────────────────────────────────────────────────────────
+        window.onload = () => { loadAll(); };
+
+        async function loadAll() {
+            await Promise.all([loadStats(), loadOrders(), loadDiscounts()]);
+        }
+
+        // ── Stats ─────────────────────────────────────────────────────────────
+        async function loadStats() {
+            try {
+                const res = await fetch(`${API}/admin/payments/stats`, {
+                    headers: { 'Authorization': `Bearer ${getAdminToken()}` }
+                });
+                if (!res.ok) throw new Error();
+                const d = await res.json();
+
+                document.getElementById('stat-revenue').textContent = `₹${Number(d.totalRevenue).toFixed(0)}`;
+                document.getElementById('stat-paid').textContent = d.paidOrders;
+                document.getElementById('stat-pending').textContent = d.pendingOrders;
+                document.getElementById('stat-failed').textContent = d.failedOrders;
+
+                // Revenue-by-exam chart (mini bar chart)
+                const rev = d.revenueByExam || {};
+                const maxVal = Math.max(...Object.values(rev), 1);
+                const chartEl = document.getElementById('revenue-chart');
+                if (Object.keys(rev).length === 0) {
+                    chartEl.innerHTML = '<p class="text-center text-muted py-3">No revenue data yet.</p>';
+                    return;
+                }
+                chartEl.innerHTML = Object.entries(rev)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([exam, amt]) => `
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span style="font-size:.85rem;font-weight:500;" class="text-truncate me-2">${exam}</span>
+                                <span class="fw-bold text-primary" style="white-space:nowrap;">₹${Number(amt).toFixed(0)}</span>
+                            </div>
+                            <div class="rev-bar-wrap">
+                                <div class="rev-bar" style="width:${(amt / maxVal * 100).toFixed(0)}%"></div>
+                            </div>
+                        </div>`
+                    ).join('');
+            } catch (e) {
+                document.getElementById('revenue-chart').innerHTML = '<p class="text-center text-danger py-3">Failed to load stats.</p>';
+            }
+        }
+
+        // ── Orders ────────────────────────────────────────────────────────────
+        async function loadOrders() {
+            try {
+                const res = await fetch(`${API}/admin/payments/orders`, {
+                    headers: { 'Authorization': `Bearer ${getAdminToken()}` }
+                });
+                if (!res.ok) throw new Error();
+                allOrders = await res.json();
+                document.getElementById('order-count').textContent = allOrders.length;
+                renderOrders(allOrders);
+            } catch (e) {
+                document.getElementById('orders-tbody').innerHTML =
+                    '<tr><td colspan="6" class="text-center text-danger py-4">Failed to load orders.</td></tr>';
+            }
+        }
+
+        function filterOrders() {
+            const status = document.getElementById('filter-status').value;
+            const q = document.getElementById('filter-search').value.toLowerCase();
+            const filtered = allOrders.filter(o => {
+                const matchStatus = !status || o.status === status;
+                const matchQ = !q ||
+                    (o.examTitle || '').toLowerCase().includes(q) ||
+                    (o.userName || '').toLowerCase().includes(q);
+                return matchStatus && matchQ;
+            });
+            renderOrders(filtered);
+        }
+
+        function renderOrders(orders) {
+            const tbody = document.getElementById('orders-tbody');
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No orders found.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = orders.map((o, i) => {
+                const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+                const statusCls = `badge-status-${o.status}`;
+                return `<tr>
+                    <td class="text-muted">${i + 1}</td>
+                    <td>
+                        <div class="fw-semibold">${o.examTitle || '—'}</div>
+                        <small class="text-muted font-monospace" style="font-size:.72rem;">${o.razorpayOrderId || ''}</small>
+                    </td>
+                    <td>${o.userName || '—'}</td>
+                    <td class="fw-bold text-primary">₹${Number(o.amount).toFixed(0)}</td>
+                    <td><span class="badge ${statusCls} px-2 py-1 rounded-pill">${o.status}</span></td>
+                    <td class="text-muted" style="white-space:nowrap;">${dateStr}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        // ── Discount Manager ──────────────────────────────────────────────────
+        async function loadDiscounts() {
+            try {
+                const res = await fetch(`${API}/admin/payments/exams`, {
+                    headers: { 'Authorization': `Bearer ${getAdminToken()}` }
+                });
+                if (!res.ok) throw new Error();
+                const exams = await res.json();
+                const el = document.getElementById('discount-list');
+                if (exams.length === 0) {
+                    el.innerHTML = '<p class="text-muted text-center">No exams found.</p>';
+                    return;
+                }
+                el.innerHTML = exams.map(e => `
+                    <div class="mb-3 p-2" style="border:1.5px solid #e9ecef;border-radius:10px;">
+                        <div class="fw-semibold text-truncate mb-2" style="font-size:.9rem;">${e.title} <span class="badge" style="font-size:.68rem;background:${e.isPremium ? '#e8eaf6' : '#e8f5e9'};color:${e.isPremium ? '#1a237e' : '#2e7d32'};">${e.isPremium ? '🔒 Premium' : 'Free'}</span></div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="text-muted" style="font-size:.8rem;">₹ Price</span>
+                                <input type="number" class="form-control form-control-sm text-center"
+                                    id="price-${e.id}" value="${Number(e.price).toFixed(0)}" min="0" step="1"
+                                    style="width:90px;" placeholder="0">
+                                <button class="btn btn-sm" style="background:#e8f5e9;color:#2e7d32;border:none;" onclick="savePrice('${e.id}', '${e.title}')" title="Save Price">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                            </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="text-muted" style="font-size:.8rem;">Discount</span>
+                                <input type="number" class="form-control form-control-sm text-center"
+                                    id="disc-${e.id}" value="${e.discountPercent}" min="0" max="100" step="5"
+                                    style="width:70px;" placeholder="0">
+                                <span class="text-muted" style="font-size:.85rem;">%</span>
+                                <button class="btn btn-sm btn-primary-custom" onclick="saveDiscount('${e.id}', '${e.title}')" title="Save Discount">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>`
+                ).join('');
+            } catch (e) {
+                document.getElementById('discount-list').innerHTML = '<p class="text-center text-danger">Failed to load exams.</p>';
+            }
+        }
+
+        async function savePrice(examId, examTitle) {
+            const price = parseFloat(document.getElementById(`price-${examId}`).value) || 0;
+            try {
+                const res = await fetch(`${API}/admin/exams/${examId}/price`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getAdminToken()}`
+                    },
+                    body: JSON.stringify({ price })
+                });
+                if (res.ok) {
+                    showToast(`✅ "${examTitle}" price set to ₹${price}`, 'success');
+                } else {
+                    const err = await res.text();
+                    showToast(`Error: ${err}`, 'danger');
+                }
+            } catch (e) {
+                showToast(`Network error: ${e.message}`, 'danger');
+            }
+        }
+
+        async function saveDiscount(examId, examTitle) {
+            const discountPercent = parseInt(document.getElementById(`disc-${examId}`).value) || 0;
+            try {
+                const res = await fetch(`${API}/admin/exams/${examId}/discount`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getAdminToken()}`
+                    },
+                    body: JSON.stringify({ discountPercent })
+                });
+                if (res.ok) {
+                    showToast(`✅ "${examTitle}" discount set to ${discountPercent}%`, 'success');
+                } else {
+                    const err = await res.text();
+                    showToast(`Error: ${err}`, 'danger');
+                }
+            } catch (e) {
+                showToast(`Network error: ${e.message}`, 'danger');
+            }
+        }
+
+        // ── Toast ─────────────────────────────────────────────────────────────
+        function showToast(msg, type = 'success') {
+            const el = document.getElementById('main-toast');
+            el.className = `toast align-items-center text-white border-0 bg-${type}`;
+            document.getElementById('toast-msg').textContent = msg;
+            new bootstrap.Toast(el).show();
+        }
+    </script>
+</body>
+
+</html>

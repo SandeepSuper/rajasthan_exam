@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — Create Test | Rajasthan Exams</title>
+    <script src="/admin-auth.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a237e;
+            --primary-light: #3949ab;
+            --accent: #ffd700;
+            --sidebar-width: 240px;
+        }
+
+        body {
+            background: #f0f2f5;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, #1a237e 0%, #283593 100%);
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 0;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+            z-index: 100;
+        }
+
+        .sidebar-brand {
+            padding: 20px 24px;
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ffd700;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .sidebar-brand i {
+            font-size: 1.4rem;
+        }
+
+        .sidebar-nav {
+            padding: 16px 0;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            color: rgba(255, 255, 255, 0.75);
+            text-decoration: none;
+            transition: all 0.2s;
+            font-size: 0.93rem;
+        }
+
+        .sidebar-link:hover,
+        .sidebar-link.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+
+        .sidebar-link.active {
+            border-left: 3px solid #ffd700;
+        }
+
+        .sidebar-link i {
+            font-size: 1.1rem;
+            width: 20px;
+        }
+
+        /* Main Content */
+        .main {
+            margin-left: var(--sidebar-width);
+            padding: 32px;
+        }
+
+        /* Header */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a237e;
+            margin: 0;
+        }
+
+        .page-subtitle {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        /* Auth Banner */
+        #auth-banner {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Card */
+        .card-custom {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            border: none;
+            margin-bottom: 24px;
+        }
+
+        .card-header-custom {
+            padding: 18px 24px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-header-custom h5 {
+            margin: 0;
+            font-weight: 600;
+            color: #1a237e;
+            font-size: 1rem;
+        }
+
+        .card-header-custom i {
+            color: #3949ab;
+            font-size: 1.1rem;
+        }
+
+        .card-body-custom {
+            padding: 24px;
+        }
+
+        /* Form */
+        .form-label {
+            font-weight: 500;
+            font-size: 0.88rem;
+            color: #495057;
+            margin-bottom: 4px;
+        }
+
+        .form-control,
+        .form-select {
+            border: 1.5px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 0.92rem;
+            padding: 9px 13px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #3949ab;
+            box-shadow: 0 0 0 3px rgba(57, 73, 171, 0.1);
+        }
+
+        /* Buttons */
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #1a237e, #3949ab);
+            border: none;
+            color: #fff;
+            border-radius: 8px;
+            padding: 10px 28px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(57, 73, 171, 0.4);
+        }
+
+        .btn-danger-custom {
+            background: linear-gradient(135deg, #c62828, #e53935);
+            border: none;
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+
+        /* Badge */
+        .badge-type {
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        /* Table */
+        .table-custom {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .table-custom th {
+            background: #f8f9ff;
+            color: #1a237e;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 12px 16px;
+            border: none;
+        }
+
+        .table-custom td {
+            padding: 13px 16px;
+            border-bottom: 1px solid #f0f2f5;
+            vertical-align: middle;
+            font-size: 0.88rem;
+        }
+
+        .table-custom tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table-custom tr:hover td {
+            background: #f8f9ff;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 9999;
+        }
+
+        /* Spinner overlay */
+        #loader {
+            display: none;
+        }
+
+        .loading #loader {
+            display: block;
+        }
+
+        .section-divider {
+            color: #6c757d;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 16px 0 8px;
+            font-weight: 600;
+        }
+
+        .required-dot::after {
+            content: " *";
+            color: #e53935;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <i class="bi bi-mortarboard-fill"></i>
+            Rajasthan Exams
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/admin" class="sidebar-link"><i class="bi bi-grid"></i> Dashboard</a>
+            <a href="#create-exam-section" class="sidebar-link" onclick="expandExamForm()"><i class="bi bi-journal-plus"></i> Create Exam</a>
+            <a href="/admin/tests" class="sidebar-link active"><i class="bi bi-clipboard-check"></i> Create Test</a>
+            <a href="/admin/content" class="sidebar-link"><i class="bi bi-collection"></i> Content</a>
+            <a href="/admin/news" class="sidebar-link"><i class="bi bi-newspaper"></i> Current Affairs</a>
+            <a href="/admin/notifications" class="sidebar-link"><i class="bi bi-bell"></i> Notifications</a>
+            <a href="/admin/payments" class="sidebar-link"><i class="bi bi-credit-card"></i> Payments</a>
+            <a href="/admin/reports" class="sidebar-link"><i class="bi bi-bug"></i> Bug Reports</a>
+            <div style="height:1px;background:rgba(255,255,255,0.1);margin:12px 20px;"></div>
+            <a href="/swagger-ui.html" class="sidebar-link" target="_blank"><i class="bi bi-code-slash"></i> API Docs</a>
+            <a href="#" class="sidebar-link" style="color:#ff8a80;" onclick="adminLogout()"><i class="bi bi-box-arrow-right"></i> Logout</a>
+        </nav>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+        <!-- Auth Banner -->
+        <div id="auth-banner">
+            <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
+            <div>
+                <strong>Authentication Required</strong> — Enter your admin JWT token below to manage tests.
+            </div>
+            <div class="ms-auto d-flex gap-2 align-items-center">
+                <input type="password" id="token-input" class="form-control form-control-sm" style="width:260px;"
+                    placeholder="Paste Bearer JWT token...">
+                <button class="btn btn-warning btn-sm fw-bold" onclick="saveToken()">
+                    <i class="bi bi-key"></i> Set Token
+                </button>
+            </div>
+        </div>
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <div>
+                <h1 class="page-title"><i class="bi bi-clipboard-plus me-2"></i>Create Test</h1>
+                <div class="page-subtitle">Add a new test under any exam category</div>
+            </div>
+            <button class="btn btn-outline-secondary btn-sm" onclick="loadTests()">
+                <i class="bi bi-arrow-clockwise me-1"></i> Refresh List
+            </button>
+        </div>
+
+        <!-- ====== CREATE EXAM SECTION ====== -->
+        <div class="card-custom mb-4" id="create-exam-section">
+            <div class="card-header-custom" style="cursor:pointer;" onclick="toggleExamForm()">
+                <i class="bi bi-journal-plus"></i>
+                <h5>Create New Exam Category</h5>
+                <span class="ms-auto badge bg-primary">Expand</span>
+            </div>
+            <div id="exam-form-body" class="card-body-custom d-none">
+                <form id="create-exam-form" onsubmit="createExam(event)">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-5">
+                            <label class="form-label required-dot">Exam Title</label>
+                            <input type="text" class="form-control" id="exam-title" placeholder="e.g. REET Level 1"
+                                required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label required-dot">Category</label>
+                            <input type="text" class="form-control" id="exam-category" placeholder="e.g. REET, CET, RAS"
+                                required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Icon URL</label>
+                            <input type="url" class="form-control" id="exam-icon" placeholder="https://...">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Language Support</label>
+                            <select class="form-select" id="exam-language">
+                                <option value="BOTH" selected>Both (HI + EN)</option>
+                                <option value="HI">Hindi Only</option>
+                                <option value="EN">English Only</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Marks / Question</label>
+                            <input type="number" class="form-control" id="exam-marks" value="2" min="0" step="0.5">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Negative Marks</label>
+                            <input type="number" class="form-control" id="exam-negative" value="0" min="0" step="0.25">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Price (INR)</label>
+                            <input type="number" class="form-control" id="exam-price" value="0" min="0" step="1">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3 align-items-center">
+                        <div class="col-auto">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="exam-premium"
+                                    onchange="toggleExamPrice()">
+                                <label class="form-check-label" for="exam-premium">Premium Exam</label>
+                            </div>
+                        </div>
+                        <div class="col-auto ms-2 text-muted" style="font-size:0.82rem;">
+                            Enable if users must pay to access this exam's tests.
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="submit" class="btn btn-primary-custom" id="exam-submit-btn">
+                            <i class="bi bi-plus-circle me-1"></i> Create Exam
+                            <span id="exam-loader" class="spinner-border spinner-border-sm ms-2 d-none"
+                                role="status"></span>
+                        </button>
+                        <button type="reset" class="btn btn-outline-secondary" onclick="resetExamForm()">
+                            <i class="bi bi-x-circle me-1"></i> Reset
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Created exam result -->
+                <div id="exam-result" class="mt-3"></div>
+            </div>
+        </div>
+        <!-- ====== END CREATE EXAM SECTION ====== -->
+
+        <div class="row g-4">
+
+            <!-- Create Form -->
+            <div class="col-lg-5">
+                <div class="card-custom">
+                    <div class="card-header-custom">
+                        <i class="bi bi-plus-circle"></i>
+                        <h5>New Test Details</h5>
+                    </div>
+                    <div class="card-body-custom">
+                        <form id="create-test-form" onsubmit="createTest(event)">
+
+                            <!-- Exam -->
+                            <div class="mb-3">
+                                <label class="form-label required-dot">Exam Category</label>
+                                <select class="form-select" id="examId" required onchange="loadTests()">
+                                    <option value="">-- Select Exam --</option>
+                                </select>
+                            </div>
+
+                            <!-- Title -->
+                            <div class="mb-3">
+                                <label class="form-label required-dot">Test Title</label>
+                                <input type="text" class="form-control" id="title"
+                                    placeholder="e.g. REET Level 1 - Mock Test 1" required>
+                            </div>
+
+                            <!-- Type -->
+                            <div class="mb-3">
+                                <label class="form-label required-dot">Test Type</label>
+                                <select class="form-select" id="type" required onchange="handleTypeChange()">
+                                    <option value="MOCK">Mock Test</option>
+                                    <option value="FULL">Full Test</option>
+                                    <option value="TOPIC">Topic Test</option>
+                                    <option value="PYQ">Previous Year (PYQ)</option>
+                                    <option value="DAILY_QUIZ">Daily Quiz</option>
+                                </select>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col">
+                                    <label class="form-label required-dot">Duration (mins)</label>
+                                    <input type="number" class="form-control" id="durationMinutes" value="60" min="1"
+                                        required>
+                                </div>
+                                <div class="col">
+                                    <label class="form-label required-dot">Total Questions</label>
+                                    <input type="number" class="form-control" id="totalQuestions" value="100" min="1"
+                                        required>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col">
+                                    <label class="form-label">Marks / Question</label>
+                                    <input type="number" class="form-control" id="marksPerQuestion" value="2" min="0"
+                                        step="0.5">
+                                </div>
+                                <div class="col">
+                                    <label class="form-label">Total Marks</label>
+                                    <input type="number" class="form-control" id="totalMarks" placeholder="Auto-calc">
+                                </div>
+                            </div>
+
+                            <p class="section-divider">Settings</p>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="isPremium">
+                                        <label class="form-check-label" for="isPremium">Premium</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="allowPrevious" checked>
+                                        <label class="form-check-label" for="allowPrevious">Allow Previous</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="sectionLock">
+                                        <label class="form-check-label" for="sectionLock">Section Lock</label>
+                                    </div>
+                                </div>
+                                <div class="col-6" id="live-toggle-wrapper">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="isLive"
+                                            onchange="toggleLiveDates()">
+                                        <label class="form-check-label" for="isLive">Is Live Test</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Live dates (hidden by default) -->
+                            <div id="live-dates" class="d-none">
+                                <p class="section-divider">Live Test Schedule</p>
+                                <div class="row g-3 mb-3">
+                                    <div class="col">
+                                        <label class="form-label">Starts At</label>
+                                        <input type="datetime-local" class="form-control" id="startsAt">
+                                    </div>
+                                    <div class="col">
+                                        <label class="form-label">Ends At</label>
+                                        <input type="datetime-local" class="form-control" id="endsAt">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-grid mt-4">
+                                <button type="submit" class="btn btn-primary-custom" id="submit-btn">
+                                    <i class="bi bi-plus-circle me-1"></i> Create Test
+                                    <span id="loader" class="spinner-border spinner-border-sm ms-2"
+                                        role="status"></span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tests List -->
+            <div class="col-lg-7">
+                <div class="card-custom">
+                    <div class="card-header-custom">
+                        <i class="bi bi-list-check"></i>
+                        <h5>Existing Tests</h5>
+                        <span class="badge bg-primary ms-auto" id="test-count">0</span>
+                    </div>
+                    <div class="card-body-custom p-0">
+                        <div id="no-exam-msg" class="text-center text-muted py-5">
+                            <i class="bi bi-arrow-left-circle fs-2 d-block mb-2"></i>
+                            Select an exam to see its tests
+                        </div>
+                        <div id="tests-loading" class="text-center text-muted py-5 d-none">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <div class="mt-2">Loading tests...</div>
+                        </div>
+                        <div class="table-responsive" id="tests-table-wrapper" style="display:none!important;">
+                            <table class="table table-custom mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Title</th>
+                                        <th>Type</th>
+                                        <th>Qs</th>
+                                        <th>Mins</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tests-tbody"></tbody>
+                            </table>
+                        </div>
+                        <div id="tests-empty" class="text-center text-muted py-5 d-none">
+                            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                            No tests found for this exam
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CSV Import Card -->
+                <div class="card-custom">
+                    <div class="card-header-custom">
+                        <i class="bi bi-file-earmark-arrow-up"></i>
+                        <h5>Bulk Import Questions via CSV</h5>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-5">
+                                <label class="form-label">Test ID</label>
+                                <input type="text" class="form-control" id="import-test-id"
+                                    placeholder="Paste Test UUID here">
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label">CSV File</label>
+                                <input type="file" class="form-control" id="import-file" accept=".csv">
+                            </div>
+                            <div class="col-md-2">
+                                <button class="btn btn-primary-custom w-100" onclick="importCSV()">
+                                    <i class="bi bi-upload me-1"></i> Import
+                                </button>
+                            </div>
+                        </div>
+                        <div id="import-result" class="mt-3"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container">
+        <div id="main-toast" class="toast align-items-center border-0" role="alert" data-bs-autohide="true"
+            data-bs-delay="4000">
+            <div class="d-flex">
+                <div class="toast-body fw-semibold" id="toast-msg">Done!</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ─── Exam Form Toggle ────────────────────────────────────────────────────────
+        function expandExamForm() {
+            const body = document.getElementById('exam-form-body');
+            const badge = document.querySelector('#create-exam-section .badge');
+            body.classList.remove('d-none');
+            badge.textContent = 'Collapse';
+        }
+
+        function toggleExamForm() {
+            const body = document.getElementById('exam-form-body');
+            const badge = document.querySelector('#create-exam-section .badge');
+            const isHidden = body.classList.contains('d-none');
+            body.classList.toggle('d-none', !isHidden);
+            badge.textContent = isHidden ? 'Collapse' : 'Expand';
+        }
+
+        function resetExamForm() {
+            document.getElementById('exam-result').innerHTML = '';
+        }
+
+        function toggleExamPrice() {
+            const isPremium = document.getElementById('exam-premium').checked;
+            const priceInput = document.getElementById('exam-price');
+            priceInput.disabled = !isPremium;
+            if (!isPremium) priceInput.value = 0;
+        }
+
+        // ─── Create Exam ─────────────────────────────────────────────────────────────
+        async function createExam(e) {
+            e.preventDefault();
+            if (!token) { showToast('Please set your admin JWT token first!', 'warning'); return; }
+
+            const btn = document.getElementById('exam-submit-btn');
+            const loader = document.getElementById('exam-loader');
+            btn.disabled = true;
+            loader.classList.remove('d-none');
+
+            const body = {
+                title: document.getElementById('exam-title').value.trim(),
+                category: document.getElementById('exam-category').value.trim(),
+                iconUrl: document.getElementById('exam-icon').value.trim() || null,
+                languageSupported: document.getElementById('exam-language').value,
+                marksPerQuestion: parseFloat(document.getElementById('exam-marks').value) || 2.0,
+                negativeMarks: parseFloat(document.getElementById('exam-negative').value) || 0.0,
+                isPremium: document.getElementById('exam-premium').checked,
+                price: parseFloat(document.getElementById('exam-price').value) || 0.0
+            };
+
+            try {
+                const res = await fetch(`${API}/admin/exams`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    document.getElementById('exam-result').innerHTML = `
+                        <div class="alert alert-success py-2">
+                            <i class="bi bi-check-circle me-1"></i>
+                            <strong>Exam "${data.title}" created!</strong>
+                            <span class="text-muted font-monospace ms-2" style="font-size:0.78rem;">${data.id}</span>
+                        </div>`;
+                    showToast(`✅ Exam "${data.title}" created!`, 'success');
+                    document.getElementById('create-exam-form').reset();
+                    await loadExams(); // Refresh exam dropdown
+                } else {
+                    document.getElementById('exam-result').innerHTML = `
+                        <div class="alert alert-danger py-2">
+                            <i class="bi bi-x-circle me-1"></i> Error: ${data.message || JSON.stringify(data)}
+                        </div>`;
+                }
+            } catch (err) {
+                document.getElementById('exam-result').innerHTML = `
+                    <div class="alert alert-danger py-2">Network error: ${err.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                loader.classList.add('d-none');
+            }
+        }
+    </script>
+    <script>
+        const API = '/api';
+        let token = localStorage.getItem('admin_jwt') || '';
+
+        // ─── Init ───────────────────────────────────────────────────────────────────
+        window.onload = () => {
+            if (token) {
+                document.getElementById('token-input').value = token;
+                document.getElementById('auth-banner').style.display = 'none';
+            }
+            loadExams();
+            // Auto-calculate total marks
+            document.getElementById('marksPerQuestion').addEventListener('input', calcTotalMarks);
+            document.getElementById('totalQuestions').addEventListener('input', calcTotalMarks);
+        };
+
+        function saveToken() {
+            token = document.getElementById('token-input').value.trim();
+            localStorage.setItem('admin_jwt', token);
+            document.getElementById('auth-banner').style.display = 'none';
+            showToast('Token saved!', 'success');
+            loadExams();
+        }
+
+        function calcTotalMarks() {
+            const mpq = parseFloat(document.getElementById('marksPerQuestion').value) || 0;
+            const tq = parseInt(document.getElementById('totalQuestions').value) || 0;
+            if (mpq && tq) document.getElementById('totalMarks').value = (mpq * tq).toFixed(1);
+        }
+
+        function handleTypeChange() {
+            // No specific type maps to "live" — user controls isLive toggle manually
+            toggleLiveDates(document.getElementById('isLive').checked);
+        }
+
+        function toggleLiveDates(force) {
+            const show = force !== undefined ? force : document.getElementById('isLive').checked;
+            document.getElementById('live-dates').classList.toggle('d-none', !show);
+        }
+
+        // ─── Load Exams ─────────────────────────────────────────────────────────────
+        async function loadExams() {
+            try {
+                const res = await fetch(`${API}/tests/exams`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Could not fetch exams');
+                const exams = await res.json();
+                const sel = document.getElementById('examId');
+                const prev = sel.value;
+                sel.innerHTML = '<option value="">-- Select Exam --</option>';
+                exams.forEach(e => {
+                    const opt = document.createElement('option');
+                    opt.value = e.id;
+                    opt.textContent = `${e.title} (${e.category})`;
+                    if (e.id === prev) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+                if (prev) loadTests();
+            } catch (err) {
+                showToast('Failed to load exams. Is the server running?', 'danger');
+            }
+        }
+
+        // ─── Load Tests ─────────────────────────────────────────────────────────────
+        async function loadTests() {
+            const examId = document.getElementById('examId').value;
+            document.getElementById('no-exam-msg').classList.toggle('d-none', !!examId);
+            document.getElementById('tests-loading').classList.toggle('d-none', !examId);
+            document.getElementById('tests-table-wrapper').style.removeProperty('display');
+            document.getElementById('tests-table-wrapper').classList.add('d-none');
+            document.getElementById('tests-empty').classList.add('d-none');
+
+            if (!examId) return;
+
+            try {
+                const res = await fetch(`${API}/tests?examId=${examId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Could not fetch tests');
+                const tests = await res.json();
+                document.getElementById('tests-loading').classList.add('d-none');
+                document.getElementById('test-count').textContent = tests.length;
+
+                const tbody = document.getElementById('tests-tbody');
+                tbody.innerHTML = '';
+
+                if (tests.length === 0) {
+                    document.getElementById('tests-empty').classList.remove('d-none');
+                    return;
+                }
+
+                tests.forEach((t, i) => {
+                    const typeColors = {
+                        'MOCK': 'primary', 'FULL': 'info', 'DAILY_QUIZ': 'danger',
+                        'TOPIC': 'warning text-dark', 'PYQ': 'secondary'
+                    };
+                    const color = typeColors[t.type] || 'secondary';
+                    const statusBadge = t.isPremium
+                        ? '<span class="badge bg-warning text-dark">Premium</span>'
+                        : (t.isLive ? '<span class="badge bg-danger">Live</span>' : '<span class="badge bg-success">Free</span>');
+
+                    tbody.innerHTML += `
+                    <tr>
+                        <td class="text-muted">${i + 1}</td>
+                        <td>
+                            <div class="fw-semibold">${t.title}</div>
+                            <small class="text-muted font-monospace" style="font-size:0.72rem;">${t.id}</small>
+                        </td>
+                        <td><span class="badge badge-type bg-${color}">${t.type.replace('_', ' ')}</span></td>
+                        <td>${t.totalQuestions}</td>
+                        <td>${t.durationMinutes}m</td>
+                        <td>${statusBadge}</td>
+                    </tr>`;
+                });
+
+                document.getElementById('tests-table-wrapper').style.display = '';
+                document.getElementById('tests-table-wrapper').classList.remove('d-none');
+
+            } catch (err) {
+                document.getElementById('tests-loading').classList.add('d-none');
+                showToast('Failed to load tests.', 'danger');
+            }
+        }
+
+        // ─── Create Test ─────────────────────────────────────────────────────────────
+        async function createTest(e) {
+            e.preventDefault();
+            if (!token) { showToast('Please set your admin JWT token first!', 'warning'); return; }
+
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true;
+            document.getElementById('loader').style.display = 'inline-block';
+
+            const body = {
+                examId: document.getElementById('examId').value,
+                title: document.getElementById('title').value,
+                type: document.getElementById('type').value,
+                durationMinutes: parseInt(document.getElementById('durationMinutes').value),
+                totalQuestions: parseInt(document.getElementById('totalQuestions').value),
+                isPremium: document.getElementById('isPremium').checked,
+                allowPrevious: document.getElementById('allowPrevious').checked,
+                sectionLock: document.getElementById('sectionLock').checked,
+                isLive: document.getElementById('isLive').checked,
+                marksPerQuestion: parseFloat(document.getElementById('marksPerQuestion').value) || null,
+                totalMarks: parseFloat(document.getElementById('totalMarks').value) || null,
+                startsAt: document.getElementById('startsAt').value || null,
+                endsAt: document.getElementById('endsAt').value || null,
+            };
+
+            try {
+                const res = await fetch(`${API}/admin/tests`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(`✅ Test "${data.title}" created! ID: ${data.id}`, 'success');
+                    document.getElementById('create-test-form').reset();
+                    document.getElementById('allowPrevious').checked = true;
+                    // Auto-fill import field with new test ID
+                    document.getElementById('import-test-id').value = data.id;
+                    loadTests();
+                } else {
+                    showToast(`Error: ${data.message || JSON.stringify(data)}`, 'danger');
+                }
+            } catch (err) {
+                showToast(`Network error: ${err.message}`, 'danger');
+            } finally {
+                btn.disabled = false;
+                document.getElementById('loader').style.display = 'none';
+            }
+        }
+
+        // ─── Import CSV ─────────────────────────────────────────────────────────────
+        async function importCSV() {
+            const testId = document.getElementById('import-test-id').value.trim();
+            const file = document.getElementById('import-file').files[0];
+            const resultDiv = document.getElementById('import-result');
+
+            if (!testId || !file) {
+                resultDiv.innerHTML = '<div class="alert alert-warning py-2">Please enter a Test ID and select a CSV file.</div>';
+                return;
+            }
+            if (!token) { showToast('Please set your admin JWT token first!', 'warning'); return; }
+
+            resultDiv.innerHTML = '<div class="text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Uploading...</div>';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch(`${API}/admin/tests/${testId}/import`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+                const text = await res.text();
+                if (res.ok) {
+                    resultDiv.innerHTML = `<div class="alert alert-success py-2"><i class="bi bi-check-circle me-1"></i>${text}</div>`;
+                    showToast(text, 'success');
+                    loadTests();
+                } else {
+                    resultDiv.innerHTML = `<div class="alert alert-danger py-2">${text}</div>`;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<div class="alert alert-danger py-2">Error: ${err.message}</div>`;
+            }
+        }
+
+        // ─── Toast ───────────────────────────────────────────────────────────────────
+        function showToast(msg, type = 'success') {
+            const el = document.getElementById('main-toast');
+            el.className = `toast align-items-center text-white border-0 bg-${type}`;
+            document.getElementById('toast-msg').textContent = msg;
+            new bootstrap.Toast(el).show();
+        }
+    </script>
+</body>
+
+</html>

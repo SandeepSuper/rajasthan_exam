@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Import Questions | Rajasthan Exam Prep</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 400px; }
+        h2 { color: #333; margin-bottom: 1.5rem; text-align: center; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; color: #666; font-weight: 500; }
+        input[type="text"], input[type="file"] { width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 0.75rem; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; transition: background-color 0.2s; }
+        button:hover { background-color: #45a049; }
+        .message { margin-top: 1rem; padding: 10px; border-radius: 4px; display: none; font-size: 0.9rem; }
+        .success { background-color: #e8f5e9; color: #2e7d32; }
+        .error { background-color: #ffebee; color: #c62828; }
+        .info { margin-top: 1rem; font-size: 0.8rem; color: #888; border-top: 1px solid #eee; padding-top: 1rem; }
+        code { background: #eee; padding: 2px 4px; border-radius: 4px; font-family: monospace; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Import Questions</h2>
+    <form id="importForm">
+        <div class="form-group">
+            <label for="testId">Test ID (UUID)</label>
+            <input type="text" id="testId" name="testId" placeholder="e.g. 550e8400-e29b..." required>
+        </div>
+        
+        <div class="form-group">
+            <label for="file">CSV File</label>
+            <input type="file" id="file" name="file" accept=".csv" required>
+        </div>
+
+        <button type="submit" id="submitBtn">Upload & Import</button>
+    </form>
+
+    <div id="message" class="message"></div>
+
+    <div class="info">
+        <strong>Required CSV Columns:</strong><br>
+        <code>textEn, textHi, optionA_En, optionB_En, optionC_En, optionD_En, optionA_Hi, optionB_Hi, optionC_Hi, optionD_Hi, correctOptionIndex, solutionEn, solutionHi</code>
+    </div>
+</div>
+
+<script>
+    document.getElementById('importForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const testId = document.getElementById('testId').value.trim();
+        const fileInput = document.getElementById('file');
+        const messageDiv = document.getElementById('message');
+        const submitBtn = document.getElementById('submitBtn');
+
+        if (!testId || fileInput.files.length === 0) {
+            showMessage('Please enter Test ID and select a file.', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Importing...';
+        messageDiv.style.display = 'none';
+
+        try {
+            // NOTE: Using a hardcoded token for demo purposes or expecting session cookie.
+            // In production, you'd header this.
+            // Assuming the browser has a cookies or we are just testing with Postman usually, 
+            // but for this simple HTML, we might hit 401 if not logged in.
+            // For now, let's assume we use it in a context where we might not need auth or we'll add a token field if it fails.
+            
+            const response = await fetch(`/api/admin/tests/${testId}/import`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                const result = await response.text();
+                showMessage('Success! ' + result, 'success');
+                document.getElementById('importForm').reset();
+            } else {
+                showMessage('Error: ' + response.statusText, 'error');
+            }
+        } catch (error) {
+            showMessage('Network Error: ' + error.message, 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Upload & Import';
+        }
+    });
+
+    function showMessage(text, type) {
+        const div = document.getElementById('message');
+        div.textContent = text;
+        div.className = 'message ' + type;
+        div.style.display = 'block';
+    }
+</script>
+
+</body>
+</html>

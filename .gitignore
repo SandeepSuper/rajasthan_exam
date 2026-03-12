@@ -1,0 +1,28 @@
+# Spring Boot config (secrets)
+src/main/resources/application.yml
+src/main/resources/application-dev.yml
+src/main/resources/application-prod.yml
+
+# Gradle
+.gradle/
+build/
+
+# Compiled files
+bin/
+*.class
+*.jar
+
+# IntelliJ
+.idea/
+*.iml
+workspace.xml
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
