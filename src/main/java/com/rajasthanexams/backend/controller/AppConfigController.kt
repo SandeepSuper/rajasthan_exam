@@ -33,7 +33,7 @@ class AppConfigController(
                 playStoreUrl = config.playStoreUrl,
                 referrerCoinReward = config.referrerCoinReward,
                 refereeCoinReward = config.refereeCoinReward,
-                shareMessage = config.shareMessageTemplate.replace("{CODE}", "").replace("{URL}", config.playStoreUrl)
+                shareMessage = config.shareMessageTemplate.replace("{URL}", config.playStoreUrl)
             )
         )
     }
