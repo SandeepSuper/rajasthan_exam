@@ -12,6 +12,7 @@ import java.util.Optional
 interface UserRepository : JpaRepository<User, UUID> {
     fun findByMobile(mobile: String): Optional<User>
     fun findByReferCode(referCode: String): Optional<User>
+    fun findByReferredBy(referredBy: String): List<User>
 
     // Global Leaderboard queries
     @Query("SELECT u FROM User u ORDER BY COALESCE(u.coins, 0) DESC, u.name ASC")

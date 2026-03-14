@@ -33,3 +33,13 @@ data class ApiResponse(
     val message: String,
     val success: Boolean = true
 )
+
+data class UserProfileResponse(
+    val id: String,
+    val name: String?,
+    val email: String?,
+    val profilePicture: String?,
+    val coins: Int,
+    val referCode: String?,
+    val isPremium: Boolean
+)

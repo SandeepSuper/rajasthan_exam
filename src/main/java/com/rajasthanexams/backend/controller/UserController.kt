@@ -63,6 +63,22 @@ class UserController(
         return ResponseEntity.ok(bookmarks)
     }
 
+    @GetMapping("/profile")
+    @Operation(summary = "Get Profile", description = "Returns the latest profile and coin balance of the user.")
+    fun getProfile(@RequestHeader("Authorization") authHeader: String): ResponseEntity<com.rajasthanexams.backend.dto.UserProfileResponse> {
+        val user = getUserFromToken(authHeader)
+        val response = com.rajasthanexams.backend.dto.UserProfileResponse(
+            id = user.id.toString(),
+            name = user.name,
+            email = user.email,
+            profilePicture = user.profilePicture,
+            coins = user.coins ?: 0,
+            referCode = user.referCode,
+            isPremium = user.isPremium
+        )
+        return ResponseEntity.ok(response)
+    }
+
     @GetMapping("/history")
     @Operation(summary = "Get Test History", description = "List all past test attempts.")
     fun getTestHistory(@RequestHeader("Authorization") authHeader: String): ResponseEntity<List<TestAttempt>> {

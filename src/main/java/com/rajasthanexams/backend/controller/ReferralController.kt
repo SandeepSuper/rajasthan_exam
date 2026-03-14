@@ -21,6 +21,12 @@ data class TopReferrerResponse(
     val avatarId: String?
 )
 
+data class ReferredUserResponse(
+    val name: String,
+    val joinedAt: String,
+    val avatarId: String?
+)
+
 @RestController
 @RequestMapping("/api/users")
 @Tag(name = "Referral", description = "Referral code and leaderboard")
@@ -54,6 +60,24 @@ class ReferralController(
             TopReferrerResponse(
                 name = u.name ?: "Student",
                 referredCount = u.referredCount ?: 0,
+                avatarId = u.profilePicture
+            )
+        }
+        return ResponseEntity.ok(result)
+    }
+
+    @GetMapping("/my-referrals")
+    @Operation(summary = "My Referrals", description = "Returns the list of users who joined using the current user's referral code.")
+    fun getMyReferrals(@RequestHeader("Authorization") authHeader: String): ResponseEntity<List<ReferredUserResponse>> {
+        val user = getUserFromToken(authHeader)
+        val code = user.referCode ?: return ResponseEntity.ok(emptyList())
+
+        val referredUsers = userRepository.findByReferredBy(code)
+        val result = referredUsers.map { u ->
+            val dateStr = u.createdAt.toLocalDate().toString()
+            ReferredUserResponse(
+                name = u.name ?: "Student",
+                joinedAt = dateStr,
                 avatarId = u.profilePicture
             )
         }
