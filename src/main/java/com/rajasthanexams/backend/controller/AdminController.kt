@@ -481,4 +481,20 @@ class AdminController(
         redisService.deleteKey("rate:community:post:minute:$userId")
         return ResponseEntity.ok(mapOf("message" to "Minute rate limit reset for user $userId"))
     }
+
+    // ─── User Search ──────────────────────────────────────────────────────────
+
+    @GetMapping("/users/search")
+    @Operation(summary = "Search Users", description = "Find users by name or mobile number.")
+    fun searchUsers(@RequestParam q: String): ResponseEntity<List<Map<String, Any?>>> {
+        val users = userRepository.searchUsers(q).take(20) // Limit to top 20
+        return ResponseEntity.ok(users.map { u ->
+            mapOf(
+                "id" to u.id,
+                "name" to (u.name ?: "—"),
+                "mobile" to u.mobile,
+                "coins" to (u.coins ?: 0)
+            )
+        })
+    }
 }
