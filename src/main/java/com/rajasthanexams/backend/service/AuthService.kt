@@ -1,7 +1,9 @@
 package com.rajasthanexams.backend.service
 
 import com.rajasthanexams.backend.dto.AuthResponse
+import com.rajasthanexams.backend.model.AppConfig
 import com.rajasthanexams.backend.model.User
+import com.rajasthanexams.backend.repository.AppConfigRepository
 import com.rajasthanexams.backend.repository.UserRepository
 import org.springframework.stereotype.Service
 import java.util.Random
@@ -11,7 +13,8 @@ class AuthService(
     private val userRepository: UserRepository,
     private val redisService: RedisService,
     private val jwtService: JwtService,
-    private val smsService: SmsService
+    private val smsService: SmsService,
+    private val appConfigRepository: AppConfigRepository
 ) {
 
     fun sendOtp(mobile: String): com.rajasthanexams.backend.dto.OtpResponse {
@@ -71,13 +74,20 @@ class AuthService(
 
         // Apply referral reward only once (when user has no referredBy yet)
         if (!referredByCode.isNullOrBlank() && user.referredBy.isNullOrBlank()) {
+            val config = appConfigRepository.findById(1L).orElseGet {
+                appConfigRepository.save(AppConfig())
+            }
+
             val referrer = userRepository.findByReferCode(referredByCode).orElse(null)
             if (referrer != null && referrer.id != user.id) {
-                referrer.coins = (referrer.coins ?: 0) + 50
+                referrer.coins = (referrer.coins ?: 0) + config.referrerCoinReward
                 referrer.referredCount = (referrer.referredCount ?: 0) + 1
+                referrer.historicalReferralCoinsEarned = (referrer.historicalReferralCoinsEarned ?: 0) + config.referrerCoinReward
                 userRepository.save(referrer)
-                user.coins = (user.coins ?: 0) + 20
+                
+                user.coins = (user.coins ?: 0) + config.refereeCoinReward
                 user.referredBy = referredByCode
+                user.referrerRewardAmount = config.referrerCoinReward
             }
         }
 

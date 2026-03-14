@@ -3,11 +3,13 @@ package com.rajasthanexams.backend.controller
 import com.rajasthanexams.backend.dto.CreateExamRequest
 import com.rajasthanexams.backend.dto.CreateQuestionRequest
 import com.rajasthanexams.backend.dto.CreateTestRequest
+import com.rajasthanexams.backend.model.AppConfig
 import com.rajasthanexams.backend.model.Exam
 import com.rajasthanexams.backend.model.Order
 import com.rajasthanexams.backend.model.Purchase
 import com.rajasthanexams.backend.model.Question
 import com.rajasthanexams.backend.model.Test
+import com.rajasthanexams.backend.repository.AppConfigRepository
 import com.rajasthanexams.backend.repository.CommunityCommentRepository
 import com.rajasthanexams.backend.repository.CommunityPostRepository
 import com.rajasthanexams.backend.repository.ExamRepository
@@ -35,6 +37,7 @@ class AdminController(
     private val userRepository: UserRepository,
     private val communityPostRepository: CommunityPostRepository,
     private val communityCommentRepository: CommunityCommentRepository,
+    private val appConfigRepository: AppConfigRepository,
     private val redisService: RedisService
 ) {
 
@@ -101,6 +104,32 @@ class AdminController(
     ): ResponseEntity<String> {
         val count = contentService.importQuestions(testId, file)
         return ResponseEntity.ok("Successfully imported $count questions.")
+    }
+
+    // ─── App Config Admin APIs ────────────────────────────────────────────────
+
+    @GetMapping("/config")
+    @Operation(summary = "Get App Config", description = "Fetch the current application configuration.")
+    fun getAppConfig(): ResponseEntity<AppConfig> {
+        val config = appConfigRepository.findById(1L).orElseGet {
+            appConfigRepository.save(AppConfig())
+        }
+        return ResponseEntity.ok(config)
+    }
+
+    @PutMapping("/config")
+    @Operation(summary = "Update App Config", description = "Updates the application configuration.")
+    fun updateAppConfig(@RequestBody newConfig: AppConfig): ResponseEntity<AppConfig> {
+        val config = appConfigRepository.findById(1L).orElseGet {
+            AppConfig()
+        }
+        val updated = config.copy(
+            playStoreUrl = newConfig.playStoreUrl,
+            referrerCoinReward = newConfig.referrerCoinReward,
+            refereeCoinReward = newConfig.refereeCoinReward,
+            shareMessageTemplate = newConfig.shareMessageTemplate
+        )
+        return ResponseEntity.ok(appConfigRepository.save(updated))
     }
 
     // ─── Payment Admin APIs ───────────────────────────────────────────────────

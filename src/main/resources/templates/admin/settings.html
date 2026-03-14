@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Global App Settings</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome for standard icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .sidebar {
+            min-height: 100vh;
+            width: 250px;
+            position: fixed;
+            background: #343a40;
+            color: #fff;
+            padding-top: 20px;
+            z-index: 1000;
+        }
+
+        .sidebar a {
+            color: #adb5bd;
+            padding: 12px 20px;
+            display: block;
+            text-decoration: none;
+            border-left: 3px solid transparent;
+            font-weight: 500;
+        }
+
+        .sidebar a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            color: #fff;
+            background: #495057;
+            border-left-color: #0d6efd;
+        }
+
+        .sidebar h5 {
+            padding: 0 20px 15px;
+            color: #fff;
+            font-weight: 600;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #495057;
+            margin-bottom: 15px;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 30px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+
+        .card-header {
+            background: #fff;
+            border-bottom: 1px solid #edf2f9;
+            padding: 15px 20px;
+            border-radius: 10px 10px 0 0 !important;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <h5>RajasthanExams</h5>
+        <a href="/admin/content"><i class="fas fa-layer-group"></i> Categories & Exams</a>
+        <a href="/admin/tests"><i class="fas fa-file-alt"></i> Manage Tests</a>
+        <a href="/admin/payments"><i class="fas fa-credit-card"></i> Revenue & Orders</a>
+        <a href="/admin/reports"><i class="fas fa-flag"></i> Reports</a>
+        <a href="/admin/news"><i class="fas fa-newspaper"></i> Current Affairs</a>
+        <a href="/admin/notifications"><i class="fas fa-bell"></i> Notifications</a>
+        <a href="/admin/community"><i class="fas fa-users"></i> Community</a>
+        <a href="/admin/settings" class="active"><i class="fas fa-cog"></i> Settings</a>
+        <div style="position: absolute; bottom: 20px; width: 100%;">
+            <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <h2 class="mb-4">Global App Settings</h2>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <i class="fas fa-sliders-h me-2"></i> Configuration Variables
+                    </div>
+                    <div class="card-body">
+                        <form id="configForm">
+                            <div class="mb-3">
+                                <label for="playStoreUrl" class="form-label">Play Store URL</label>
+                                <input type="url" class="form-control" id="playStoreUrl" required>
+                                <div class="form-text">Link used for sharing the app and "Rate App" prompt.</div>
+                            </div>
+
+                            <hr class="my-4">
+                            <h5 class="mb-3">Referral Rewards</h5>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="referrerCoinReward" class="form-label">Referrer Reward (Coins)</label>
+                                    <input type="number" class="form-control" id="referrerCoinReward" min="0" required>
+                                    <div class="form-text">Given to existing user who invites a friend.</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="refereeCoinReward" class="form-label">Referee Reward (Coins)</label>
+                                    <input type="number" class="form-control" id="refereeCoinReward" min="0" required>
+                                    <div class="form-text">Given to the new friend who signs up.</div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <div class="mb-3">
+                                <label for="shareMessageTemplate" class="form-label">Share Message Template</label>
+                                <textarea class="form-control" id="shareMessageTemplate" rows="4" required></textarea>
+                                <div class="form-text">Text users share with friends. Use <code>{CODE}</code> and
+                                    <code>{URL}</code> as placeholders.</div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary" id="saveBtn">
+                                <span class="spinner-border spinner-border-sm d-none" id="saveSpinner" role="status"
+                                    aria-hidden="true"></span>
+                                Save Configuration
+                            </button>
+                            <span id="saveStatus" class="ms-3 text-success d-none"></span>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- External scripts for auth logic -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/admin-auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Wait slightly to ensure token is verified by admin-auth.js
+            setTimeout(loadConfiguration, 500);
+
+            document.getElementById('configForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+                saveConfiguration();
+            });
+        });
+
+        async function loadConfiguration() {
+            try {
+                const response = await fetch('/api/admin/config', {
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('adminToken') }
+                });
+
+                if (response.ok) {
+                    const config = await response.json();
+                    document.getElementById('playStoreUrl').value = config.playStoreUrl;
+                    document.getElementById('referrerCoinReward').value = config.referrerCoinReward;
+                    document.getElementById('refereeCoinReward').value = config.refereeCoinReward;
+                    document.getElementById('shareMessageTemplate').value = config.shareMessageTemplate;
+                } else {
+                    console.error('Failed to load configuration');
+                    if (response.status === 401 || response.status === 403) {
+                        window.location.href = '/admin/login';
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching configuration:', error);
+            }
+        }
+
+        async function saveConfiguration() {
+            const btn = document.getElementById('saveBtn');
+            const spinner = document.getElementById('saveSpinner');
+            const status = document.getElementById('saveStatus');
+
+            btn.disabled = true;
+            spinner.classList.remove('d-none');
+            status.classList.add('d-none');
+
+            const payload = {
+                playStoreUrl: document.getElementById('playStoreUrl').value,
+                referrerCoinReward: parseInt(document.getElementById('referrerCoinReward').value),
+                refereeCoinReward: parseInt(document.getElementById('refereeCoinReward').value),
+                shareMessageTemplate: document.getElementById('shareMessageTemplate').value
+            };
+
+            try {
+                const response = await fetch('/api/admin/config', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    status.innerHTML = '<i class="fas fa-check-circle"></i> Saved successfully!';
+                    status.className = 'ms-3 text-success';
+                } else {
+                    status.innerHTML = '<i class="fas fa-times-circle"></i> Failed to save!';
+                    status.className = 'ms-3 text-danger';
+                }
+            } catch (error) {
+                status.innerHTML = '<i class="fas fa-times-circle"></i> Network error!';
+                status.className = 'ms-3 text-danger';
+                console.error('Error saving configuration:', error);
+            } finally {
+                status.classList.remove('d-none');
+                btn.disabled = false;
+                spinner.classList.add('d-none');
+
+                // Hide success message after 3 seconds
+                setTimeout(() => {
+                    status.classList.add('d-none');
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+
+</html>

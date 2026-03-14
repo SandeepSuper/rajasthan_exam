@@ -2,9 +2,10 @@ package com.rajasthanexams.backend.controller
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import com.rajasthanexams.backend.repository.AppConfigRepository
+import com.rajasthanexams.backend.model.AppConfig
 
 data class AppConfigResponse(
     val playStoreUrl: String,
@@ -16,20 +17,23 @@ data class AppConfigResponse(
 @RestController
 @RequestMapping("/api/config")
 @Tag(name = "App Config", description = "Remote app configuration values")
-class AppConfigController {
-
-    @Value("\${app.play-store-url}")
-    private lateinit var playStoreUrl: String
+class AppConfigController(
+    private val appConfigRepository: AppConfigRepository
+) {
 
     @GetMapping
     @Operation(summary = "Get App Config", description = "Returns remote config values like Play Store URL and referral coin rewards.")
     fun getConfig(): ResponseEntity<AppConfigResponse> {
+        val config = appConfigRepository.findById(1L).orElseGet {
+            appConfigRepository.save(AppConfig())
+        }
+        
         return ResponseEntity.ok(
             AppConfigResponse(
-                playStoreUrl = playStoreUrl,
-                referrerCoinReward = 50,
-                refereeCoinReward = 20,
-                shareMessage = "Join Rajasthan Exam Prep and ace your government exams! 🎓\nUse my referral code: {CODE} when signing up to get FREE coins!\nDownload now: $playStoreUrl"
+                playStoreUrl = config.playStoreUrl,
+                referrerCoinReward = config.referrerCoinReward,
+                refereeCoinReward = config.refereeCoinReward,
+                shareMessage = config.shareMessageTemplate.replace("{CODE}", "").replace("{URL}", config.playStoreUrl)
             )
         )
     }

@@ -1,5 +1,7 @@
 package com.rajasthanexams.backend.controller
 
+import com.rajasthanexams.backend.model.AppConfig
+import com.rajasthanexams.backend.repository.AppConfigRepository
 import com.rajasthanexams.backend.repository.UserRepository
 import com.rajasthanexams.backend.service.JwtService
 import io.swagger.v3.oas.annotations.Operation
@@ -12,7 +14,7 @@ import org.springframework.web.bind.annotation.*
 data class ReferralInfoResponse(
     val referCode: String,
     val referredCount: Int,
-    val coinsEarned: Int  // referredCount * 50
+    val coinsEarned: Int  // referredCount * config.referrerCoinReward
 )
 
 data class TopReferrerResponse(
@@ -24,7 +26,8 @@ data class TopReferrerResponse(
 data class ReferredUserResponse(
     val name: String,
     val joinedAt: String,
-    val avatarId: String?
+    val avatarId: String?,
+    val coinsEarned: Int
 )
 
 @RestController
@@ -33,7 +36,8 @@ data class ReferredUserResponse(
 @SecurityRequirement(name = "bearerAuth")
 class ReferralController(
     private val userRepository: UserRepository,
-    private val jwtService: JwtService
+    private val jwtService: JwtService,
+    private val appConfigRepository: AppConfigRepository
 ) {
 
     @GetMapping("/referral")
@@ -43,11 +47,16 @@ class ReferralController(
     ): ResponseEntity<ReferralInfoResponse> {
         val user = getUserFromToken(authHeader)
         val code = user.referCode ?: "RAJ-XXXXXX"
+        
+        val config = appConfigRepository.findById(1L).orElseGet {
+            appConfigRepository.save(AppConfig())
+        }
+        
         return ResponseEntity.ok(
             ReferralInfoResponse(
                 referCode = code,
                 referredCount = user.referredCount ?: 0,
-                coinsEarned = (user.referredCount ?: 0) * 50
+                coinsEarned = user.historicalReferralCoinsEarned ?: 0
             )
         )
     }
@@ -72,13 +81,18 @@ class ReferralController(
         val user = getUserFromToken(authHeader)
         val code = user.referCode ?: return ResponseEntity.ok(emptyList())
 
+        val config = appConfigRepository.findById(1L).orElseGet {
+            appConfigRepository.save(AppConfig())
+        }
+
         val referredUsers = userRepository.findByReferredBy(code)
         val result = referredUsers.map { u ->
             val dateStr = u.createdAt.toLocalDate().toString()
             ReferredUserResponse(
                 name = u.name ?: "Student",
                 joinedAt = dateStr,
-                avatarId = u.profilePicture
+                avatarId = u.profilePicture,
+                coinsEarned = u.referrerRewardAmount ?: 50 // Older referrals default to 50
             )
         }
         return ResponseEntity.ok(result)

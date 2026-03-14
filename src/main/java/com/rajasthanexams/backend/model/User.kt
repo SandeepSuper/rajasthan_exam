@@ -43,6 +43,14 @@ data class User(
     @Column(name = "referred_count")
     var referredCount: Int? = 0,
 
+    /** The exact amount of coins given to the referrer when this user joined via their code */
+    @Column(name = "referrer_reward_amount")
+    var referrerRewardAmount: Int? = null,
+
+    /** Total historical coins earned from referrals (prevents retroactive reduction/inflation mapping) */
+    @Column(name = "historical_referral_coins_earned")
+    var historicalReferralCoinsEarned: Int? = 0,
+
     /** The referral code this user used when registering (if any) */
     @Column(name = "referred_by")
     var referredBy: String? = null,
