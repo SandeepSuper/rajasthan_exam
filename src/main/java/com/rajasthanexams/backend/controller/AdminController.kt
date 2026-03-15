@@ -446,11 +446,19 @@ class AdminController(
     fun getRateLimitStatus(@PathVariable userId: String): ResponseEntity<Map<String, Any?>> {
         val dailyKey  = "rate:community:post:daily:$userId"
         val minuteKey = "rate:community:post:minute:$userId"
+        
+        val dailyCommentKey = "rate:community:comment:daily:$userId"
+        val minuteCommentKey = "rate:community:comment:minute:$userId"
 
         val dailyCount  = redisService.getCounter(dailyKey)
         val minuteCount = redisService.getCounter(minuteKey)
         val dailyTtl    = redisService.getTtlSeconds(dailyKey)
         val minuteTtl   = redisService.getTtlSeconds(minuteKey)
+        
+        val dailyCommentCount = redisService.getCounter(dailyCommentKey)
+        val minuteCommentCount = redisService.getCounter(minuteCommentKey)
+        val dailyCommentTtl = redisService.getTtlSeconds(dailyCommentKey)
+        val minuteCommentTtl = redisService.getTtlSeconds(minuteCommentKey)
 
         // Also lookup user info
         val user = try { userRepository.findById(java.util.UUID.fromString(userId)).orElse(null) } catch (e: Exception) { null }
@@ -464,7 +472,13 @@ class AdminController(
             "dailyTtlSec"    to dailyTtl,
             "minutePosts"    to minuteCount,
             "minuteLimit"    to 5,
-            "minuteTtlSec"   to minuteTtl
+            "minuteTtlSec"   to minuteTtl,
+            "dailyComments"  to dailyCommentCount,
+            "dailyCommentLimit" to 30,
+            "dailyCommentTtlSec" to dailyCommentTtl,
+            "minuteComments" to minuteCommentCount,
+            "minuteCommentLimit" to 5,
+            "minuteCommentTtlSec" to minuteCommentTtl
         ))
     }
 
@@ -480,6 +494,20 @@ class AdminController(
     fun resetMinuteLimit(@PathVariable userId: String): ResponseEntity<Map<String, Any?>> {
         redisService.deleteKey("rate:community:post:minute:$userId")
         return ResponseEntity.ok(mapOf("message" to "Minute rate limit reset for user $userId"))
+    }
+    
+    @DeleteMapping("/community/rate-limit/{userId}/comment/daily")
+    @Operation(summary = "Reset daily comment limit for a user")
+    fun resetDailyCommentLimit(@PathVariable userId: String): ResponseEntity<Map<String, Any?>> {
+        redisService.deleteKey("rate:community:comment:daily:$userId")
+        return ResponseEntity.ok(mapOf("message" to "Daily comment rate limit reset for user $userId"))
+    }
+
+    @DeleteMapping("/community/rate-limit/{userId}/comment/minute")
+    @Operation(summary = "Reset per-minute comment limit for a user")
+    fun resetMinuteCommentLimit(@PathVariable userId: String): ResponseEntity<Map<String, Any?>> {
+        redisService.deleteKey("rate:community:comment:minute:$userId")
+        return ResponseEntity.ok(mapOf("message" to "Minute comment rate limit reset for user $userId"))
     }
 
     // ─── User Search ──────────────────────────────────────────────────────────

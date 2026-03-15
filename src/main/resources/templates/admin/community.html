@@ -788,6 +788,11 @@
                 const dailyColor = dailyPct >= 100 ? 'danger' : dailyPct >= 70 ? 'warning' : 'success';
                 const minuteColor = minutePct >= 100 ? 'danger' : minutePct >= 70 ? 'warning' : 'success';
 
+                const dailyCommentPct = Math.min(100, Math.round((d.dailyComments / d.dailyCommentLimit) * 100));
+                const minuteCommentPct = Math.min(100, Math.round((d.minuteComments / d.minuteCommentLimit) * 100));
+                const dailyCommentColor = dailyCommentPct >= 100 ? 'danger' : dailyCommentPct >= 70 ? 'warning' : 'success';
+                const minuteCommentColor = minuteCommentPct >= 100 ? 'danger' : minuteCommentPct >= 70 ? 'warning' : 'success';
+
                 const ttlFmt = (sec) => sec <= 0 ? 'Expired / No data' : sec < 120 ? `${sec}s` : `${Math.round(sec / 60)}m`;
 
                 document.getElementById('rl-result').innerHTML = `
@@ -800,33 +805,70 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span style="font-size:.85rem;font-weight:600;">📅 Daily Posts</span>
-                            <span style="font-size:.85rem;">${d.dailyPosts} / ${d.dailyLimit} &nbsp;<span class="text-muted">(resets in ${ttlFmt(d.dailyTtlSec)})</span></span>
-                        </div>
-                        <div class="progress" style="height:10px;border-radius:8px;">
-                            <div class="progress-bar bg-${dailyColor}" style="width:${dailyPct}%"></div>
-                        </div>
-                    </div>
+                    <div class="row">
+                        <div class="col-md-6 border-end pe-4">
+                            <h6 class="mb-3 text-primary"><i class="bi bi-chat-left-text me-1"></i> Post Limits</h6>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span style="font-size:.85rem;font-weight:600;">📅 Daily Posts</span>
+                                    <span style="font-size:.85rem;">${d.dailyPosts} / ${d.dailyLimit} &nbsp;<span class="text-muted">(resets in ${ttlFmt(d.dailyTtlSec)})</span></span>
+                                </div>
+                                <div class="progress" style="height:10px;border-radius:8px;">
+                                    <div class="progress-bar bg-${dailyColor}" style="width:${dailyPct}%"></div>
+                                </div>
+                            </div>
 
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span style="font-size:.85rem;font-weight:600;">⏱️ Per-Minute Posts</span>
-                            <span style="font-size:.85rem;">${d.minutePosts} / ${d.minuteLimit} &nbsp;<span class="text-muted">(resets in ${ttlFmt(d.minuteTtlSec)})</span></span>
-                        </div>
-                        <div class="progress" style="height:10px;border-radius:8px;">
-                            <div class="progress-bar bg-${minuteColor}" style="width:${minutePct}%"></div>
-                        </div>
-                    </div>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span style="font-size:.85rem;font-weight:600;">⏱️ Per-Minute Posts</span>
+                                    <span style="font-size:.85rem;">${d.minutePosts} / ${d.minuteLimit} &nbsp;<span class="text-muted">(resets in ${ttlFmt(d.minuteTtlSec)})</span></span>
+                                </div>
+                                <div class="progress" style="height:10px;border-radius:8px;">
+                                    <div class="progress-bar bg-${minuteColor}" style="width:${minutePct}%"></div>
+                                </div>
+                            </div>
 
-                    <div class="d-flex gap-2 mt-2">
-                        <button class="btn btn-outline-warning btn-sm" onclick="resetLimit('${d.userId}', 'daily')">
-                            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Daily Limit
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm" onclick="resetLimit('${d.userId}', 'minute')">
-                            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Minute Limit
-                        </button>
+                            <div class="d-flex gap-2 mt-3">
+                                <button class="btn btn-outline-warning btn-sm" onclick="resetLimit('${d.userId}', 'daily')">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Daily 
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="resetLimit('${d.userId}', 'minute')">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Minute 
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 ps-4">
+                            <h6 class="mb-3 text-success"><i class="bi bi-chat-quote me-1"></i> Comment Limits</h6>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span style="font-size:.85rem;font-weight:600;">📅 Daily Comments</span>
+                                    <span style="font-size:.85rem;">${d.dailyComments} / ${d.dailyCommentLimit} &nbsp;<span class="text-muted">(resets in ${ttlFmt(d.dailyCommentTtlSec)})</span></span>
+                                </div>
+                                <div class="progress" style="height:10px;border-radius:8px;">
+                                    <div class="progress-bar bg-${dailyCommentColor}" style="width:${dailyCommentPct}%"></div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span style="font-size:.85rem;font-weight:600;">⏱️ Per-Minute Comments</span>
+                                    <span style="font-size:.85rem;">${d.minuteComments} / ${d.minuteCommentLimit} &nbsp;<span class="text-muted">(resets in ${ttlFmt(d.minuteCommentTtlSec)})</span></span>
+                                </div>
+                                <div class="progress" style="height:10px;border-radius:8px;">
+                                    <div class="progress-bar bg-${minuteCommentColor}" style="width:${minuteCommentPct}%"></div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2 mt-3">
+                                <button class="btn btn-outline-warning btn-sm" onclick="resetLimit('${d.userId}', 'comment/daily')">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Daily 
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="resetLimit('${d.userId}', 'comment/minute')">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Minute 
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>`;
             }

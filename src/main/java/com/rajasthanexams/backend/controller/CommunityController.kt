@@ -108,6 +108,9 @@ class CommunityController(
     ): com.rajasthanexams.backend.model.CommunityComment {
         val post = communityPostRepository.findById(postId).orElseThrow { RuntimeException("Post not found") }
         
+        // Rate limit: max 30 comments per day, 5 per minute per user
+        redisService.checkCommentRateLimit(request.userId.toString())
+        
         val comment = com.rajasthanexams.backend.model.CommunityComment(
             postId = postId,
             userId = request.userId,
