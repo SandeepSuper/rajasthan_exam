@@ -49,6 +49,9 @@ dependencies {
     
     // Payment
     implementation("com.razorpay:razorpay-java:1.4.3")
+
+    // Google OAuth
+    implementation("com.google.api-client:google-api-client:2.2.0")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {

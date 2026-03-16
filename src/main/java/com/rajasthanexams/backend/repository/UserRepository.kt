@@ -11,6 +11,7 @@ import java.util.Optional
 @Repository
 interface UserRepository : JpaRepository<User, UUID> {
     fun findByMobile(mobile: String): Optional<User>
+    fun findByEmail(email: String): Optional<User>
     fun findByReferCode(referCode: String): Optional<User>
     fun findByReferredBy(referredBy: String): List<User>
 

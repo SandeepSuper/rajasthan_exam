@@ -1,6 +1,7 @@
 package com.rajasthanexams.backend.controller
 
 import com.rajasthanexams.backend.dto.AuthResponse
+import com.rajasthanexams.backend.dto.GoogleLoginRequest
 import com.rajasthanexams.backend.dto.OtpRequest
 import com.rajasthanexams.backend.dto.VerifyOtpRequest
 import com.rajasthanexams.backend.service.AuthService
@@ -34,6 +35,19 @@ class AuthController(
             ResponseEntity.ok(response)
         } catch (e: IllegalArgumentException) {
             ResponseEntity.badRequest().build()
+        }
+    }
+
+    @PostMapping("/google")
+    @Operation(summary = "Google Login", description = "Verifies Google ID token and returns a JWT token.")
+    fun googleLogin(@RequestBody request: GoogleLoginRequest): ResponseEntity<AuthResponse> {
+        return try {
+            val response = authService.loginWithGoogle(request.idToken, request.referredByCode)
+            ResponseEntity.ok(response)
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.badRequest().build()
+        } catch (e: Exception) {
+            ResponseEntity.internalServerError().build()
         }
     }
 

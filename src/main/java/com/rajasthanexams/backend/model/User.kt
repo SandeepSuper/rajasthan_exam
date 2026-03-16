@@ -11,8 +11,8 @@ data class User(
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: UUID? = null,
 
-    @Column(nullable = false, unique = true)
-    val mobile: String,
+    @Column(unique = true)
+    var mobile: String? = null,
 
     @Column(unique = true)
     var email: String? = null,

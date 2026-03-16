@@ -1,5 +1,10 @@
 package com.rajasthanexams.backend.dto
 
+data class GoogleLoginRequest(
+    val idToken: String,
+    val referredByCode: String? = null
+)
+
 data class OtpRequest(
     val mobile: String
 )
