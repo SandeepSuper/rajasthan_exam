@@ -39,6 +39,9 @@ class PaymentController(
     @Value("\${app.max-coin-discount-percent:10}")
     private var maxCoinDiscountPercent: Int = 10
 
+    @Value("\${app.min-coins-to-use:500}")
+    private var minCoinsToUse: Int = 500
+
     /** Typed request body for create-order */
     data class CreateOrderRequest(
         val examId: String,
@@ -51,18 +54,25 @@ class PaymentController(
         @RequestParam examId: String,
         principal: Principal
     ): ResponseEntity<Any> {
-        val user = userRepository.findByMobile(principal.name).orElse(null)
+        val user = (userRepository.findByEmail(principal.name).orElseGet { userRepository.findByMobile(principal.name).orElse(null) })
             ?: return ResponseEntity.badRequest().body("User not found")
         val exam = examRepository.findById(UUID.fromString(examId)).orElse(null)
             ?: return ResponseEntity.badRequest().body("Exam not found")
 
         val basePrice = getDiscountedPrice(exam.price ?: 0.0, exam.discountPercent ?: 0)
-        val maxDiscountAmount = round(basePrice * maxCoinDiscountPercent / 100.0 * 100) / 100.0
-        val maxUsableCoins = min(
-            (user.coins ?: 0),
-            (maxDiscountAmount / coinValue).toInt()
-        )
-        val discountAmount = round(maxUsableCoins * coinValue * 100) / 100.0
+        
+        var maxUsableCoins = 0
+        var discountAmount = 0.0
+
+        if ((user.coins ?: 0) >= minCoinsToUse) {
+            val maxDiscountAmount = round(basePrice * maxCoinDiscountPercent / 100.0 * 100) / 100.0
+            maxUsableCoins = min(
+                (user.coins ?: 0),
+                (maxDiscountAmount / coinValue).toInt()
+            )
+            discountAmount = round(maxUsableCoins * coinValue * 100) / 100.0
+        }
+        
         val finalPrice = maxOf(0.0, basePrice - discountAmount)
 
         return ResponseEntity.ok(mapOf(
@@ -82,8 +92,7 @@ class PaymentController(
         principal: Principal
     ): ResponseEntity<Any> {
         try {
-            val mobile = principal.name
-            val user = userRepository.findByMobile(mobile).orElse(null)
+            val user = (userRepository.findByEmail(principal.name).orElseGet { userRepository.findByMobile(principal.name).orElse(null) })
                 ?: return ResponseEntity.badRequest().body("User not found")
 
             val examId = request.examId
@@ -105,7 +114,7 @@ class PaymentController(
             var coinsToDeduct = 0
             var coinDiscountAmount = 0.0
 
-            if (useCoins) {
+            if (useCoins && (user.coins ?: 0) >= minCoinsToUse) {
                 val maxDiscountAmount = round(basePrice * maxCoinDiscountPercent / 100.0 * 100) / 100.0
                 val maxUsableCoins = min(
                     (user.coins ?: 0),
@@ -177,7 +186,7 @@ class PaymentController(
         @RequestBody data: Map<String, String>,
         principal: Principal
     ): ResponseEntity<Any> {
-        val user = userRepository.findByMobile(principal.name).orElse(null)
+        val user = (userRepository.findByEmail(principal.name).orElseGet { userRepository.findByMobile(principal.name).orElse(null) })
             ?: return ResponseEntity.badRequest().body("User not found")
 
         val orderId = data["razorpay_order_id"]

@@ -100,8 +100,9 @@ class ReferralController(
 
     private fun getUserFromToken(authHeader: String): com.rajasthanexams.backend.model.User {
         val token = authHeader.substring(7)
-        val username = jwtService.extractUsername(token)
-        return userRepository.findByMobile(username)
-            .orElseThrow { IllegalArgumentException("User not found") }
+        val subject = jwtService.extractUsername(token)
+        return userRepository.findByEmail(subject)
+            .orElseGet { userRepository.findByMobile(subject).orElse(null) }
+            ?: throw IllegalArgumentException("User not found")
     }
 }

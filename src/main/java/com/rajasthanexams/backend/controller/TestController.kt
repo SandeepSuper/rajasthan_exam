@@ -31,10 +31,10 @@ class TestController(
         if (!token.isNullOrEmpty() && token.startsWith("Bearer ")) {
             try {
                 val jwt = token.substring(7)
-                val mobile = jwtService.extractUsername(jwt)
-                val user = userRepository.findByMobile(mobile)
-                if (user.isPresent) {
-                    userId = user.get().id
+                val username = jwtService.extractUsername(jwt)
+                val user = userRepository.findByEmail(username).orElseGet { userRepository.findByMobile(username).orElse(null) }
+                if (user != null) {
+                    userId = user.id
                 }
             } catch (e: Exception) {
                 // Ignore token errors
@@ -56,10 +56,10 @@ class TestController(
         if (!token.isNullOrEmpty() && token.startsWith("Bearer ")) {
             try {
                 val jwt = token.substring(7)
-                val mobile = jwtService.extractUsername(jwt)
-                val user = userRepository.findByMobile(mobile)
-                if (user.isPresent) {
-                    attemptedTestIds = contentService.getAttemptedTestIds(user.get().id!!)
+                val username = jwtService.extractUsername(jwt)
+                val user = userRepository.findByEmail(username).orElseGet { userRepository.findByMobile(username).orElse(null) }
+                if (user != null) {
+                    attemptedTestIds = contentService.getAttemptedTestIds(user.id!!)
                 }
             } catch (e: Exception) {
                 // Ignore token errors for public view
@@ -100,10 +100,10 @@ class TestController(
         if (!token.isNullOrEmpty() && token.startsWith("Bearer ")) {
             try {
                 val jwt = token.substring(7)
-                val mobile = jwtService.extractUsername(jwt)
-                val user = userRepository.findByMobile(mobile)
-                if (user.isPresent) {
-                    isAttempted = contentService.hasUserAttemptedTest(testId, user.get().id!!)
+                val username = jwtService.extractUsername(jwt)
+                val user = userRepository.findByEmail(username).orElseGet { userRepository.findByMobile(username).orElse(null) }
+                if (user != null) {
+                    isAttempted = contentService.hasUserAttemptedTest(testId, user.id!!)
                 }
             } catch (e: Exception) {
                 // Ignore token errors

@@ -71,12 +71,25 @@ class UserController(
             id = user.id.toString(),
             name = user.name,
             email = user.email,
+            mobile = user.mobile,
             profilePicture = user.profilePicture,
             coins = user.coins ?: 0,
             referCode = user.referCode,
             isPremium = user.isPremium
         )
         return ResponseEntity.ok(response)
+    }
+
+    @PatchMapping("/profile/mobile")
+    @Operation(summary = "Update Mobile", description = "Saves or updates the user's mobile number (optional).")
+    fun updateMobile(
+        @RequestHeader("Authorization") authHeader: String,
+        @RequestBody body: Map<String, String?>
+    ): ResponseEntity<com.rajasthanexams.backend.dto.ApiResponse> {
+        val user = getUserFromToken(authHeader)
+        user.mobile = body["mobile"]
+        userRepository.save(user)
+        return ResponseEntity.ok(com.rajasthanexams.backend.dto.ApiResponse(message = "Mobile updated"))
     }
 
     @GetMapping("/history")
@@ -89,9 +102,10 @@ class UserController(
 
     private fun getUserFromToken(authHeader: String): com.rajasthanexams.backend.model.User {
         val token = authHeader.substring(7)
-        val username = jwtService.extractUsername(token)
-        return userRepository.findByMobile(username).orElseThrow {
-             IllegalArgumentException("User not found")
-        }
+        val subject = jwtService.extractUsername(token)
+        // Try email first (new email-auth users), then mobile (legacy OTP users)
+        return userRepository.findByEmail(subject)
+            .orElseGet { userRepository.findByMobile(subject).orElse(null) }
+            ?: throw IllegalArgumentException("User not found")
     }
 }

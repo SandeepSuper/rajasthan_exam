@@ -134,4 +134,19 @@ class RedisService(
     fun deleteKey(key: String) {
         redisTemplate.delete(key)
     }
+
+    // ─── Generic Key-Value Helpers ────────────────────────────────────────────
+    /** Save any string value with TTL (in seconds) */
+    fun saveValue(key: String, value: String, ttlSeconds: Long = 600) {
+        redisTemplate.opsForValue().set(key, value, Duration.ofSeconds(ttlSeconds))
+    }
+
+    /** Get any string value by key */
+    fun getValue(key: String): String? = redisTemplate.opsForValue().get(key)
+
+    /** Delete any key by exact key name */
+    fun deleteValue(key: String) {
+        redisTemplate.delete(key)
+    }
 }
+

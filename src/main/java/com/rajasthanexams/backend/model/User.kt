@@ -18,7 +18,10 @@ data class User(
     var email: String? = null,
 
     @Column(name = "password_hash")
-    val passwordHash: String? = null,
+    var passwordHash: String? = null,
+
+    @Column(name = "email_verified")
+    var emailVerified: Boolean = false,
 
     @Column
     var name: String? = null,
