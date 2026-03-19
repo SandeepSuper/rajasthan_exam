@@ -23,6 +23,16 @@ data class SendEmailOtpRequest(
     val email: String
 )
 
+data class ForgotPasswordRequest(
+    val email: String
+)
+
+data class ResetPasswordRequest(
+    val email: String,
+    val otp: String,
+    val newPassword: String
+)
+
 data class VerifyEmailOtpRequest(
     val email: String,
     val otp: String

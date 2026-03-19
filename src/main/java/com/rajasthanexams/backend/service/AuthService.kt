@@ -2,6 +2,7 @@ package com.rajasthanexams.backend.service
 
 import com.rajasthanexams.backend.dto.AuthResponse
 import com.rajasthanexams.backend.dto.OtpResponse
+import com.rajasthanexams.backend.dto.ApiResponse
 import com.rajasthanexams.backend.model.AppConfig
 import com.rajasthanexams.backend.model.User
 import com.rajasthanexams.backend.repository.AppConfigRepository
@@ -156,6 +157,41 @@ class AuthService(
             coins = user.coins ?: 0,
             referCode = user.referCode
         )
+    }
+
+    // ─── Forgot Password ─────────────────────────────────────────────
+
+    fun sendForgotPasswordOtp(email: String): ApiResponse {
+        val normalizedEmail = email.trim().lowercase()
+        val user = userRepository.findByEmail(normalizedEmail)
+            .orElseThrow { IllegalArgumentException("No account found with this email.") }
+
+        if (user.passwordHash.isNullOrBlank()) {
+            throw IllegalArgumentException("This account uses Google Sign-In. Please continue with Google.")
+        }
+        
+        val otp = String.format("%06d", Random().nextInt(1_000_000))
+        println("   FORGOT PASSWORD OTP to $normalizedEmail: Your OTP is $otp   ")
+        redisService.saveOtp("forgot:$normalizedEmail", otp)
+        emailService.sendOtpEmail(normalizedEmail, otp)
+
+        return ApiResponse("Password reset OTP sent to $normalizedEmail", true)
+    }
+
+    fun resetPassword(email: String, otp: String, newPassword: String): ApiResponse {
+        val normalizedEmail = email.trim().lowercase()
+        val key = "forgot:$normalizedEmail"
+        val storedOtp = redisService.getOtp(key) ?: throw IllegalArgumentException("OTP expired or not found. Please request a new one.")
+        if (storedOtp != otp) throw IllegalArgumentException("Invalid OTP. Please try again.")
+        
+        val user = userRepository.findByEmail(normalizedEmail)
+            .orElseThrow { IllegalArgumentException("No account found with this email.") }
+
+        user.passwordHash = passwordEncoder.encode(newPassword)
+        userRepository.save(user)
+        redisService.deleteOtp(key)
+
+        return ApiResponse("Password successfully reset. You can now login.", true)
     }
 
     // ─── Google Auth (unchanged) ────────────────────────────────────

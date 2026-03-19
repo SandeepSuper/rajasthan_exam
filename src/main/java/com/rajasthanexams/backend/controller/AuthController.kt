@@ -65,6 +65,30 @@ class AuthController(
         }
     }
 
+    // ─── Forgot Password ────────────────────────────────────────────
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Forgot Password", description = "Sends a 6-digit OTP to the provided email for password reset.")
+    fun forgotPassword(@RequestBody request: ForgotPasswordRequest): ResponseEntity<ApiResponse> {
+        return try {
+            val response = authService.sendForgotPasswordOtp(request.email)
+            ResponseEntity.ok(response)
+        } catch (e: Exception) {
+            ResponseEntity.badRequest().body(ApiResponse(e.message ?: "Failed to send OTP", false))
+        }
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reset Password", description = "Verifies the OTP and resets the user's password.")
+    fun resetPassword(@RequestBody request: ResetPasswordRequest): ResponseEntity<ApiResponse> {
+        return try {
+            val response = authService.resetPassword(request.email, request.otp, request.newPassword)
+            ResponseEntity.ok(response)
+        } catch (e: Exception) {
+            ResponseEntity.badRequest().body(ApiResponse(e.message ?: "Failed to reset password", false))
+        }
+    }
+
     // ─── Google Auth (unchanged) ────────────────────────────────────
 
     @PostMapping("/google")
