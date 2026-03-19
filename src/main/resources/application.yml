@@ -44,9 +44,6 @@ logging:
     org.springframework: INFO
     com.rajasthanexams: DEBUG
 
-# Razorpay keys are now in application-dev.yml and application-prod.yml
-# Do NOT put keys here
-
 jwt:
   expiration: 2592000000   # 30 days in milliseconds
 
