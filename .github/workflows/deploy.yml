@@ -1,0 +1,69 @@
+name:  Deploy to Production
+
+on:
+  push:
+    branches:
+      - prod
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    environment: prod   # IMPORTANT 🔥
+
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build JAR
+        run: mvn clean package -DskipTests
+
+      - name: Copy JAR to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "target/*.jar"
+          target: "/home/ec2-user/app/"
+
+      - name: Restart PROD Service
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ec2-user/app
+            
+            echo "🚀 Starting deployment..."
+            
+            # create backup folder if not exists
+            mkdir -p backups
+            
+            # backup old jar
+            if [ -f app.jar ]; then
+              echo "📦 Taking backup..."
+              mv app.jar backups/app-$(date +%Y%m%d%H%M%S).jar
+            fi
+            
+            # cleanup old backups (keep last 5)
+            echo "🧹 Cleaning old backups..."
+            ls -t backups/ | tail -n +6 | xargs -r rm --
+            
+            # move new jar
+            echo "📥 Deploying new version..."
+            mv *.jar app.jar
+            
+            # restart service
+            echo "🔄 Restarting service..."
+            sudo systemctl restart exam-prod
+            
+            echo "✅ Deployment successful!"
