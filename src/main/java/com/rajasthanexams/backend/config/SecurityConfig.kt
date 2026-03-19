@@ -29,7 +29,7 @@ class SecurityConfig(
                     .requestMatchers("/import.html").permitAll()
                     .requestMatchers("/admin/**").permitAll()
                     .requestMatchers("/admin-auth.js").permitAll()   // ← static JS for admin pages
-                    .requestMatchers("/*.js", "/*.css", "/*.ico", "/static/**").permitAll()
+                    .requestMatchers("/*.js", "/*.css", "/*.ico", "/*.html", "/static/**").permitAll()
                     .requestMatchers("/error").permitAll()
                     .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/news", "/api/news/**").permitAll() // Current affairs - public read
                     .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/notifications", "/api/notifications/**").permitAll() // Notifications - public read
