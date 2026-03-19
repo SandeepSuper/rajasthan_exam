@@ -350,6 +350,7 @@
             <a href="/admin/reports" class="sidebar-link"><i class="bi bi-bug"></i> Bug Reports</a>
             <a href="/admin/news" class="sidebar-link"><i class="bi bi-newspaper"></i> News</a>
             <a href="/admin/notifications" class="sidebar-link"><i class="bi bi-bell"></i> Notifications</a>
+            <a href="/admin/settings" class="sidebar-link"><i class="bi bi-gear"></i> Settings</a>
             <div style="height:1px;background:rgba(255,255,255,.1);margin:12px 20px;"></div>
             <a href="/swagger-ui.html" class="sidebar-link" target="_blank"><i class="bi bi-code-slash"></i> API
                 Docs</a>
@@ -479,11 +480,12 @@
         <div id="tab-ratelimit" style="display:none;">
             <div class="filter-bar mb-3">
                 <input type="text" id="rl-user-id" class="form-control" style="width:320px;"
-                    placeholder="🔍 Enter User ID (UUID)...">
+                    placeholder="🔍 Enter ID, Name, or Mobile...">
                 <button class="btn btn-primary btn-sm" onclick="checkRateLimit()">
                     <i class="bi bi-search me-1"></i> Check
                 </button>
             </div>
+            <div id="rl-search-results" class="mb-3" style="display:none;background:#fff;padding:12px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.1)"></div>
             <div id="rl-result"></div>
         </div>
 
@@ -743,9 +745,40 @@
             }
 
             // ── Rate Limit Management ───────────────────────────────────────────────
-            async function checkRateLimit() {
-                const userId = document.getElementById('rl-user-id').value.trim();
-                if (!userId) { showToast('Please enter a User ID', 'warning'); return; }
+            async function checkRateLimit(forcedId = null) {
+                const userId = forcedId || document.getElementById('rl-user-id').value.trim();
+                if (!userId) { showToast('Please enter a User ID or Name', 'warning'); return; }
+
+                // Check if it's a UUID
+                const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+                if (!uuidRegex.test(userId)) {
+                    document.getElementById('rl-search-results').style.display = 'block';
+                    document.getElementById('rl-search-results').innerHTML = '<div class="spinner-border spinner-border-sm text-primary me-2"></div> Searching users...';
+                    document.getElementById('rl-result').innerHTML = '';
+                    try {
+                        const res = await authFetch(`${API}/admin/users/search?q=${encodeURIComponent(userId)}`);
+                        if (!res.ok) throw new Error();
+                        const users = await res.json();
+                        if (users.length === 0) {
+                            document.getElementById('rl-search-results').innerHTML = '<div class="text-danger"><i class="bi bi-exclamation-circle me-1"></i> No users found matching "' + escHtml(userId) + '".</div>';
+                        } else {
+                            let html = '<div class="mb-2" style="font-size:0.85rem;color:#666;font-weight:600;">Select user to view rate limits:</div><div style="display:flex;flex-wrap:wrap;gap:8px;">';
+                            users.forEach(u => {
+                                html += `<button class="btn btn-outline-secondary btn-sm text-start" onclick="document.getElementById('rl-user-id').value='${u.id}';checkRateLimit('${u.id}')">
+                                    <i class="bi bi-person me-1"></i> <strong>${escHtml(u.name)}</strong><br>
+                                    <span style="font-size:0.75rem"><i class="bi bi-telephone"></i> ${escHtml(u.mobile)}</span>
+                                </button>`;
+                            });
+                            html += '</div>';
+                            document.getElementById('rl-search-results').innerHTML = html;
+                        }
+                    } catch (e) {
+                         document.getElementById('rl-search-results').innerHTML = '<div class="text-danger">Search failed.</div>';
+                    }
+                    return;
+                }
+
+                document.getElementById('rl-search-results').style.display = 'none';
                 const res = await authFetch(`${API}/admin/community/rate-limit/${userId}`);
                 if (!res.ok) { showToast('User not found or error', 'danger'); return; }
                 const d = await res.json();
@@ -754,6 +787,11 @@
                 const minutePct = Math.min(100, Math.round((d.minutePosts / d.minuteLimit) * 100));
                 const dailyColor = dailyPct >= 100 ? 'danger' : dailyPct >= 70 ? 'warning' : 'success';
                 const minuteColor = minutePct >= 100 ? 'danger' : minutePct >= 70 ? 'warning' : 'success';
+
+                const dailyCommentPct = Math.min(100, Math.round((d.dailyComments / d.dailyCommentLimit) * 100));
+                const minuteCommentPct = Math.min(100, Math.round((d.minuteComments / d.minuteCommentLimit) * 100));
+                const dailyCommentColor = dailyCommentPct >= 100 ? 'danger' : dailyCommentPct >= 70 ? 'warning' : 'success';
+                const minuteCommentColor = minuteCommentPct >= 100 ? 'danger' : minuteCommentPct >= 70 ? 'warning' : 'success';
 
                 const ttlFmt = (sec) => sec <= 0 ? 'Expired / No data' : sec < 120 ? `${sec}s` : `${Math.round(sec / 60)}m`;
 
@@ -767,33 +805,70 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span style="font-size:.85rem;font-weight:600;">📅 Daily Posts</span>
-                            <span style="font-size:.85rem;">${d.dailyPosts} / ${d.dailyLimit} &nbsp;<span class="text-muted">(resets in ${ttlFmt(d.dailyTtlSec)})</span></span>
-                        </div>
-                        <div class="progress" style="height:10px;border-radius:8px;">
-                            <div class="progress-bar bg-${dailyColor}" style="width:${dailyPct}%"></div>
-                        </div>
-                    </div>
+                    <div class="row">
+                        <div class="col-md-6 border-end pe-4">
+                            <h6 class="mb-3 text-primary"><i class="bi bi-chat-left-text me-1"></i> Post Limits</h6>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span style="font-size:.85rem;font-weight:600;">📅 Daily Posts</span>
+                                    <span style="font-size:.85rem;">${d.dailyPosts} / ${d.dailyLimit} &nbsp;<span class="text-muted">(resets in ${ttlFmt(d.dailyTtlSec)})</span></span>
+                                </div>
+                                <div class="progress" style="height:10px;border-radius:8px;">
+                                    <div class="progress-bar bg-${dailyColor}" style="width:${dailyPct}%"></div>
+                                </div>
+                            </div>
 
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span style="font-size:.85rem;font-weight:600;">⏱️ Per-Minute Posts</span>
-                            <span style="font-size:.85rem;">${d.minutePosts} / ${d.minuteLimit} &nbsp;<span class="text-muted">(resets in ${ttlFmt(d.minuteTtlSec)})</span></span>
-                        </div>
-                        <div class="progress" style="height:10px;border-radius:8px;">
-                            <div class="progress-bar bg-${minuteColor}" style="width:${minutePct}%"></div>
-                        </div>
-                    </div>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span style="font-size:.85rem;font-weight:600;">⏱️ Per-Minute Posts</span>
+                                    <span style="font-size:.85rem;">${d.minutePosts} / ${d.minuteLimit} &nbsp;<span class="text-muted">(resets in ${ttlFmt(d.minuteTtlSec)})</span></span>
+                                </div>
+                                <div class="progress" style="height:10px;border-radius:8px;">
+                                    <div class="progress-bar bg-${minuteColor}" style="width:${minutePct}%"></div>
+                                </div>
+                            </div>
 
-                    <div class="d-flex gap-2 mt-2">
-                        <button class="btn btn-outline-warning btn-sm" onclick="resetLimit('${d.userId}', 'daily')">
-                            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Daily Limit
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm" onclick="resetLimit('${d.userId}', 'minute')">
-                            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Minute Limit
-                        </button>
+                            <div class="d-flex gap-2 mt-3">
+                                <button class="btn btn-outline-warning btn-sm" onclick="resetLimit('${d.userId}', 'daily')">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Daily 
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="resetLimit('${d.userId}', 'minute')">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Minute 
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 ps-4">
+                            <h6 class="mb-3 text-success"><i class="bi bi-chat-quote me-1"></i> Comment Limits</h6>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span style="font-size:.85rem;font-weight:600;">📅 Daily Comments</span>
+                                    <span style="font-size:.85rem;">${d.dailyComments} / ${d.dailyCommentLimit} &nbsp;<span class="text-muted">(resets in ${ttlFmt(d.dailyCommentTtlSec)})</span></span>
+                                </div>
+                                <div class="progress" style="height:10px;border-radius:8px;">
+                                    <div class="progress-bar bg-${dailyCommentColor}" style="width:${dailyCommentPct}%"></div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span style="font-size:.85rem;font-weight:600;">⏱️ Per-Minute Comments</span>
+                                    <span style="font-size:.85rem;">${d.minuteComments} / ${d.minuteCommentLimit} &nbsp;<span class="text-muted">(resets in ${ttlFmt(d.minuteCommentTtlSec)})</span></span>
+                                </div>
+                                <div class="progress" style="height:10px;border-radius:8px;">
+                                    <div class="progress-bar bg-${minuteCommentColor}" style="width:${minuteCommentPct}%"></div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2 mt-3">
+                                <button class="btn btn-outline-warning btn-sm" onclick="resetLimit('${d.userId}', 'comment/daily')">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Daily 
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="resetLimit('${d.userId}', 'comment/minute')">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Minute 
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>`;
             }

@@ -44,5 +44,8 @@ class AdminViewController(
 
     @GetMapping("/community")
     fun communityPage(): String = "admin/community"
+
+    @GetMapping("/settings")
+    fun settingsPage(): String = "admin/settings"
 }
 

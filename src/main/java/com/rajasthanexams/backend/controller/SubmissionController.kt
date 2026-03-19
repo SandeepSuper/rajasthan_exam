@@ -30,10 +30,10 @@ class SubmissionController(
         @RequestBody request: SubmitTestRequest
     ): ResponseEntity<TestResultResponse> {
         val token = authHeader.substring(7)
-        val username = jwtService.extractUsername(token)
-        val user = userRepository.findByMobile(username).orElseThrow {
-            IllegalArgumentException("User not found")
-        }
+        val subject = jwtService.extractUsername(token)
+        val user = userRepository.findByEmail(subject)
+            .orElseGet { userRepository.findByMobile(subject).orElse(null) }
+            ?: throw IllegalArgumentException("User not found")
         val result = submissionService.submitTest(user.id!!, request)
         return ResponseEntity.ok(result)
     }
@@ -45,10 +45,10 @@ class SubmissionController(
     ): ResponseEntity<Map<String, Any?>> {
         return try {
             val token = authHeader.substring(7)
-            val username = jwtService.extractUsername(token)
-            val user = userRepository.findByMobile(username).orElseThrow {
-                IllegalArgumentException("User not found")
-            }
+            val subject = jwtService.extractUsername(token)
+            val user = userRepository.findByEmail(subject)
+                .orElseGet { userRepository.findByMobile(subject).orElse(null) }
+                ?: throw IllegalArgumentException("User not found")
 
             val attempts = testAttemptRepository.findByUserIdOrderByAttemptDateDesc(user.id!!)
             val totalTests = attempts.size

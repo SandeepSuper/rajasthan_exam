@@ -1,6 +1,7 @@
 package com.rajasthanexams.backend.config
 
 import com.rajasthanexams.backend.service.JwtService
+import com.rajasthanexams.backend.service.RedisService
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -12,7 +13,8 @@ import org.springframework.web.filter.OncePerRequestFilter
 
 @Component
 class JwtAuthenticationFilter(
-    private val jwtService: JwtService
+    private val jwtService: JwtService,
+    private val redisService: RedisService
 ) : OncePerRequestFilter() {
 
     override fun doFilterInternal(
@@ -33,7 +35,10 @@ class JwtAuthenticationFilter(
         // In our case "username" is the mobile number
         try {
             username = jwtService.extractUsername(jwt)
-            if (SecurityContextHolder.getContext().authentication == null) {
+            val activeToken = redisService.getValue("session:$username")
+            
+            // Only proceed if this token matches the one currently active in Redis
+            if (activeToken == jwt && SecurityContextHolder.getContext().authentication == null) {
                 if (jwtService.isTokenValid(jwt, username)) {
                     val authToken = UsernamePasswordAuthenticationToken(
                         username,
@@ -43,6 +48,8 @@ class JwtAuthenticationFilter(
                     authToken.details = WebAuthenticationDetailsSource().buildDetails(request)
                     SecurityContextHolder.getContext().authentication = authToken
                 }
+            } else if (activeToken != jwt) {
+                println("JWT Validation Failed: Token does not match active session for $username")
             }
         } catch (e: Exception) {
             // Token invalid or expired

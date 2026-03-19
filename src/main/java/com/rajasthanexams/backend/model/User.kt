@@ -11,14 +11,17 @@ data class User(
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: UUID? = null,
 
-    @Column(nullable = false, unique = true)
-    val mobile: String,
+    @Column(unique = true)
+    var mobile: String? = null,
 
     @Column(unique = true)
     var email: String? = null,
 
     @Column(name = "password_hash")
-    val passwordHash: String? = null,
+    var passwordHash: String? = null,
+
+    @Column(name = "email_verified")
+    var emailVerified: Boolean = false,
 
     @Column
     var name: String? = null,
@@ -42,6 +45,14 @@ data class User(
     /** How many new users signed up using this user's referral code */
     @Column(name = "referred_count")
     var referredCount: Int? = 0,
+
+    /** The exact amount of coins given to the referrer when this user joined via their code */
+    @Column(name = "referrer_reward_amount")
+    var referrerRewardAmount: Int? = null,
+
+    /** Total historical coins earned from referrals (prevents retroactive reduction/inflation mapping) */
+    @Column(name = "historical_referral_coins_earned")
+    var historicalReferralCoinsEarned: Int? = 0,
 
     /** The referral code this user used when registering (if any) */
     @Column(name = "referred_by")

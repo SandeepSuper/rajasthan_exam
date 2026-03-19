@@ -82,6 +82,44 @@ class RedisService(
         }
     }
 
+    // ─── Rate Limiting for Community Comments ────────────────────────
+    // Two-level limit identical to posts:
+    //   1. Per-day: max 30 comments per day
+    //   2. Per-minute burst: max 5 comments per 60 seconds
+    fun checkCommentRateLimit(userId: String) {
+        // ── Daily limit check ──────────────────────────────────────────────────
+        val dailyKey = "rate:community:comment:daily:$userId"
+        val dailyCount = redisTemplate.opsForValue().increment(dailyKey) ?: 1L
+
+        if (dailyCount == 1L) {
+            // First comment of the day — expire key after 24 hours
+            redisTemplate.expire(dailyKey, Duration.ofDays(1))
+        }
+
+        if (dailyCount > 30) {
+            throw ResponseStatusException(
+                HttpStatus.TOO_MANY_REQUESTS,
+                "Aap 1 din mein sirf 30 comments kar sakte hain. Kal dobara try karein."
+            )
+        }
+
+        // ── Per-minute burst check ─────────────────────────────────────────────
+        val minuteKey = "rate:community:comment:minute:$userId"
+        val minuteCount = redisTemplate.opsForValue().increment(minuteKey) ?: 1L
+
+        if (minuteCount == 1L) {
+            // First request in this minute window
+            redisTemplate.expire(minuteKey, Duration.ofSeconds(60))
+        }
+
+        if (minuteCount > 5) {
+            throw ResponseStatusException(
+                HttpStatus.TOO_MANY_REQUESTS,
+                "Aap 1 minute mein sirf 5 comments kar sakte hain. Thodi der baad try karein."
+            )
+        }
+    }
+
     // ─── Admin Helpers ─────────────────────────────────────────────────────────
 
     /** Read current value of a Redis counter key (returns 0 if key doesn't exist) */
@@ -96,4 +134,19 @@ class RedisService(
     fun deleteKey(key: String) {
         redisTemplate.delete(key)
     }
+
+    // ─── Generic Key-Value Helpers ────────────────────────────────────────────
+    /** Save any string value with TTL (in seconds) */
+    fun saveValue(key: String, value: String, ttlSeconds: Long = 600) {
+        redisTemplate.opsForValue().set(key, value, Duration.ofSeconds(ttlSeconds))
+    }
+
+    /** Get any string value by key */
+    fun getValue(key: String): String? = redisTemplate.opsForValue().get(key)
+
+    /** Delete any key by exact key name */
+    fun deleteValue(key: String) {
+        redisTemplate.delete(key)
+    }
 }
+

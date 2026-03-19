@@ -25,6 +25,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation("org.springframework.boot:spring-boot-starter-websocket")
+    implementation("org.springframework.boot:spring-boot-starter-mail")
     
     // Database
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -49,6 +50,9 @@ dependencies {
     
     // Payment
     implementation("com.razorpay:razorpay-java:1.4.3")
+
+    // Google OAuth
+    implementation("com.google.api-client:google-api-client:2.2.0")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {

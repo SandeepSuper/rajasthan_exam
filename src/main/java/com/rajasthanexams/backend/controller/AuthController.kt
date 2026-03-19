@@ -1,50 +1,139 @@
 package com.rajasthanexams.backend.controller
 
-import com.rajasthanexams.backend.dto.AuthResponse
-import com.rajasthanexams.backend.dto.OtpRequest
-import com.rajasthanexams.backend.dto.VerifyOtpRequest
+import com.rajasthanexams.backend.dto.*
 import com.rajasthanexams.backend.service.AuthService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/auth")
-@Tag(name = "Authentication", description = "OTP based login and verification")
+@Tag(name = "Authentication", description = "Email+Password login and Google OAuth")
 class AuthController(
     private val authService: AuthService
 ) {
 
-    @PostMapping("/send-otp")
-    @Operation(summary = "Send OTP", description = "Generates and sends an OTP to the provided mobile number.")
-    fun sendOtp(@RequestBody request: OtpRequest): ResponseEntity<com.rajasthanexams.backend.dto.OtpResponse> {
-        val result = authService.sendOtp(request.mobile)
-        return ResponseEntity.ok(result)
+    // ─── Email + Password Auth ─────────────────────────────────────
+
+    @PostMapping("/register")
+    @Operation(summary = "Register", description = "Register with name, email, password. Sends OTP to email for verification.")
+    fun register(@RequestBody request: EmailRegisterRequest): ResponseEntity<ApiResponse> {
+        return try {
+            val message = authService.registerWithEmail(
+                name = request.name,
+                email = request.email,
+                password = request.password,
+                referredByCode = request.referredByCode
+            )
+            ResponseEntity.ok(ApiResponse(message, true))
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.badRequest().body(ApiResponse(e.message ?: "Registration failed", false))
+        }
     }
 
-    @PostMapping("/verify-otp")
-    @Operation(summary = "Verify OTP", description = "Verifies the OTP and returns a JWT token.")
-    fun verifyOtp(@RequestBody request: VerifyOtpRequest): ResponseEntity<AuthResponse> {
+    @PostMapping("/send-email-otp")
+    @Operation(summary = "Send Email OTP", description = "Generates and sends a 6-digit OTP to the provided email address.")
+    fun sendEmailOtp(@RequestBody request: SendEmailOtpRequest): ResponseEntity<ApiResponse> {
         return try {
-            val response = authService.verifyOtp(request.mobile, request.otp)
+            authService.sendEmailOtp(request.email)
+            ResponseEntity.ok(ApiResponse("OTP sent to ${request.email}", true))
+        } catch (e: Exception) {
+            ResponseEntity.badRequest().body(ApiResponse(e.message ?: "Failed to send OTP", false))
+        }
+    }
+
+    @PostMapping("/verify-email-otp")
+    @Operation(summary = "Verify Email OTP", description = "Verifies the email OTP. Returns JWT token on success.")
+    fun verifyEmailOtp(@RequestBody request: VerifyEmailOtpRequest): ResponseEntity<AuthResponse> {
+        return try {
+            val response = authService.verifyEmailOtp(request.email, request.otp)
             ResponseEntity.ok(response)
         } catch (e: IllegalArgumentException) {
             ResponseEntity.badRequest().build()
         }
     }
 
+    @PostMapping("/login")
+    @Operation(summary = "Login", description = "Login with email and password. Returns JWT token.")
+    fun login(@RequestBody request: EmailLoginRequest): ResponseEntity<AuthResponse> {
+        return try {
+            val response = authService.loginWithEmail(request.email, request.password)
+            ResponseEntity.ok(response)
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.badRequest().build()
+        }
+    }
+
+    // ─── Forgot Password ────────────────────────────────────────────
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Forgot Password", description = "Sends a 6-digit OTP to the provided email for password reset.")
+    fun forgotPassword(@RequestBody request: ForgotPasswordRequest): ResponseEntity<ApiResponse> {
+        return try {
+            val response = authService.sendForgotPasswordOtp(request.email)
+            ResponseEntity.ok(response)
+        } catch (e: Exception) {
+            ResponseEntity.badRequest().body(ApiResponse(e.message ?: "Failed to send OTP", false))
+        }
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reset Password", description = "Verifies the OTP and resets the user's password.")
+    fun resetPassword(@RequestBody request: ResetPasswordRequest): ResponseEntity<ApiResponse> {
+        return try {
+            val response = authService.resetPassword(request.email, request.otp, request.newPassword)
+            ResponseEntity.ok(response)
+        } catch (e: Exception) {
+            ResponseEntity.badRequest().body(ApiResponse(e.message ?: "Failed to reset password", false))
+        }
+    }
+
+    // ─── Google Auth (unchanged) ────────────────────────────────────
+
+    @PostMapping("/google")
+    @Operation(summary = "Google Login", description = "Verifies Google ID token and returns a JWT token.")
+    fun googleLogin(@RequestBody request: GoogleLoginRequest): ResponseEntity<AuthResponse> {
+        return try {
+            val response = authService.loginWithGoogle(request.idToken, request.referredByCode)
+            ResponseEntity.ok(response)
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.badRequest().build()
+        } catch (e: Exception) {
+            ResponseEntity.internalServerError().build()
+        }
+    }
+
+    // ─── Profile Update ─────────────────────────────────────────────
+
     @PostMapping("/update-profile")
     @Operation(summary = "Update Profile", description = "Updates user name, email, and profile picture.")
-    fun updateProfile(@RequestBody request: com.rajasthanexams.backend.dto.UpdateProfileRequest): ResponseEntity<com.rajasthanexams.backend.dto.ApiResponse> {
+    fun updateProfile(@RequestBody request: UpdateProfileRequest): ResponseEntity<ApiResponse> {
         return try {
             authService.updateProfile(request.userId, request.name, request.email, request.profilePicture, request.referredByCode)
-            ResponseEntity.ok(com.rajasthanexams.backend.dto.ApiResponse("Profile updated successfully", true))
+            ResponseEntity.ok(ApiResponse("Profile updated successfully", true))
         } catch (e: Exception) {
-            ResponseEntity.badRequest().body(com.rajasthanexams.backend.dto.ApiResponse(e.message ?: "Update failed", false))
+            ResponseEntity.badRequest().body(ApiResponse(e.message ?: "Update failed", false))
+        }
+    }
+
+    // ─── Legacy Mobile OTP (deprecated, kept for backward compat) ──
+
+    @PostMapping("/send-otp")
+    @Operation(summary = "[Deprecated] Send Mobile OTP", description = "Legacy endpoint. No longer used.")
+    fun sendOtp(@RequestBody request: OtpRequest): ResponseEntity<OtpResponse> {
+        val result = authService.sendOtp(request.mobile)
+        return ResponseEntity.ok(result)
+    }
+
+    @PostMapping("/verify-otp")
+    @Operation(summary = "[Deprecated] Verify Mobile OTP", description = "Legacy endpoint. No longer used.")
+    fun verifyOtp(@RequestBody request: VerifyOtpRequest): ResponseEntity<AuthResponse> {
+        return try {
+            val response = authService.verifyOtp(request.mobile, request.otp)
+            ResponseEntity.ok(response)
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.badRequest().build()
         }
     }
 }

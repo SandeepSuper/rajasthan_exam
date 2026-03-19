@@ -1,0 +1,23 @@
+# ─── PROD / LIVE Profile ──────────────────────────────────────
+# Active when: spring.profiles.active=prod  (set on your VPS)
+# Uses Razorpay LIVE keys (real money — keep this SECRET)
+server:
+  port: 8080
+
+razorpay:
+  key:
+    id: ${RAZORPAY_KEY_ID}
+    secret: ${RAZORPAY_KEY_SECRET}
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/${POSTGRES_PROD_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ${REDIS_PASSWORD}
+      database: 1   # index 1 = prod, index 0 = dev (same redis container)

@@ -1,0 +1,29 @@
+# ─── DEV / TEST Profile ───────────────────────────────────────
+# Active when: spring.profiles.active=dev
+# Uses Razorpay TEST keys (no real money charged)
+server:
+  port: 8081
+
+razorpay:
+  key:
+    id: ${RAZORPAY_KEY_ID}
+    secret: ${RAZORPAY_KEY_SECRET}
+
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/${POSTGRES_DEV_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+
+  flyway:
+    out-of-order: true           # allow out-of-order migrations on dev
+    validate-on-migrate: false   # skip checksum validation on dev (no crashes if file changed)
+    baseline-on-migrate: true    # if history table is empty, auto-create baseline
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ${REDIS_PASSWORD}
+      database: 0

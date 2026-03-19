@@ -3,11 +3,13 @@ package com.rajasthanexams.backend.controller
 import com.rajasthanexams.backend.dto.CreateExamRequest
 import com.rajasthanexams.backend.dto.CreateQuestionRequest
 import com.rajasthanexams.backend.dto.CreateTestRequest
+import com.rajasthanexams.backend.model.AppConfig
 import com.rajasthanexams.backend.model.Exam
 import com.rajasthanexams.backend.model.Order
 import com.rajasthanexams.backend.model.Purchase
 import com.rajasthanexams.backend.model.Question
 import com.rajasthanexams.backend.model.Test
+import com.rajasthanexams.backend.repository.AppConfigRepository
 import com.rajasthanexams.backend.repository.CommunityCommentRepository
 import com.rajasthanexams.backend.repository.CommunityPostRepository
 import com.rajasthanexams.backend.repository.ExamRepository
@@ -35,6 +37,7 @@ class AdminController(
     private val userRepository: UserRepository,
     private val communityPostRepository: CommunityPostRepository,
     private val communityCommentRepository: CommunityCommentRepository,
+    private val appConfigRepository: AppConfigRepository,
     private val redisService: RedisService
 ) {
 
@@ -101,6 +104,32 @@ class AdminController(
     ): ResponseEntity<String> {
         val count = contentService.importQuestions(testId, file)
         return ResponseEntity.ok("Successfully imported $count questions.")
+    }
+
+    // ─── App Config Admin APIs ────────────────────────────────────────────────
+
+    @GetMapping("/config")
+    @Operation(summary = "Get App Config", description = "Fetch the current application configuration.")
+    fun getAppConfig(): ResponseEntity<AppConfig> {
+        val config = appConfigRepository.findById(1L).orElseGet {
+            appConfigRepository.save(AppConfig())
+        }
+        return ResponseEntity.ok(config)
+    }
+
+    @PutMapping("/config")
+    @Operation(summary = "Update App Config", description = "Updates the application configuration.")
+    fun updateAppConfig(@RequestBody newConfig: AppConfig): ResponseEntity<AppConfig> {
+        val config = appConfigRepository.findById(1L).orElseGet {
+            AppConfig()
+        }
+        val updated = config.copy(
+            playStoreUrl = newConfig.playStoreUrl,
+            referrerCoinReward = newConfig.referrerCoinReward,
+            refereeCoinReward = newConfig.refereeCoinReward,
+            shareMessageTemplate = newConfig.shareMessageTemplate
+        )
+        return ResponseEntity.ok(appConfigRepository.save(updated))
     }
 
     // ─── Payment Admin APIs ───────────────────────────────────────────────────
@@ -417,11 +446,19 @@ class AdminController(
     fun getRateLimitStatus(@PathVariable userId: String): ResponseEntity<Map<String, Any?>> {
         val dailyKey  = "rate:community:post:daily:$userId"
         val minuteKey = "rate:community:post:minute:$userId"
+        
+        val dailyCommentKey = "rate:community:comment:daily:$userId"
+        val minuteCommentKey = "rate:community:comment:minute:$userId"
 
         val dailyCount  = redisService.getCounter(dailyKey)
         val minuteCount = redisService.getCounter(minuteKey)
         val dailyTtl    = redisService.getTtlSeconds(dailyKey)
         val minuteTtl   = redisService.getTtlSeconds(minuteKey)
+        
+        val dailyCommentCount = redisService.getCounter(dailyCommentKey)
+        val minuteCommentCount = redisService.getCounter(minuteCommentKey)
+        val dailyCommentTtl = redisService.getTtlSeconds(dailyCommentKey)
+        val minuteCommentTtl = redisService.getTtlSeconds(minuteCommentKey)
 
         // Also lookup user info
         val user = try { userRepository.findById(java.util.UUID.fromString(userId)).orElse(null) } catch (e: Exception) { null }
@@ -435,7 +472,13 @@ class AdminController(
             "dailyTtlSec"    to dailyTtl,
             "minutePosts"    to minuteCount,
             "minuteLimit"    to 5,
-            "minuteTtlSec"   to minuteTtl
+            "minuteTtlSec"   to minuteTtl,
+            "dailyComments"  to dailyCommentCount,
+            "dailyCommentLimit" to 30,
+            "dailyCommentTtlSec" to dailyCommentTtl,
+            "minuteComments" to minuteCommentCount,
+            "minuteCommentLimit" to 5,
+            "minuteCommentTtlSec" to minuteCommentTtl
         ))
     }
 
@@ -451,5 +494,35 @@ class AdminController(
     fun resetMinuteLimit(@PathVariable userId: String): ResponseEntity<Map<String, Any?>> {
         redisService.deleteKey("rate:community:post:minute:$userId")
         return ResponseEntity.ok(mapOf("message" to "Minute rate limit reset for user $userId"))
+    }
+    
+    @DeleteMapping("/community/rate-limit/{userId}/comment/daily")
+    @Operation(summary = "Reset daily comment limit for a user")
+    fun resetDailyCommentLimit(@PathVariable userId: String): ResponseEntity<Map<String, Any?>> {
+        redisService.deleteKey("rate:community:comment:daily:$userId")
+        return ResponseEntity.ok(mapOf("message" to "Daily comment rate limit reset for user $userId"))
+    }
+
+    @DeleteMapping("/community/rate-limit/{userId}/comment/minute")
+    @Operation(summary = "Reset per-minute comment limit for a user")
+    fun resetMinuteCommentLimit(@PathVariable userId: String): ResponseEntity<Map<String, Any?>> {
+        redisService.deleteKey("rate:community:comment:minute:$userId")
+        return ResponseEntity.ok(mapOf("message" to "Minute comment rate limit reset for user $userId"))
+    }
+
+    // ─── User Search ──────────────────────────────────────────────────────────
+
+    @GetMapping("/users/search")
+    @Operation(summary = "Search Users", description = "Find users by name or mobile number.")
+    fun searchUsers(@RequestParam q: String): ResponseEntity<List<Map<String, Any?>>> {
+        val users = userRepository.searchUsers(q).take(20) // Limit to top 20
+        return ResponseEntity.ok(users.map { u ->
+            mapOf(
+                "id" to u.id,
+                "name" to (u.name ?: "—"),
+                "mobile" to u.mobile,
+                "coins" to (u.coins ?: 0)
+            )
+        })
     }
 }
