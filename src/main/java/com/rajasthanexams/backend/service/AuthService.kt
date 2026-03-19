@@ -114,6 +114,7 @@ class AuthService(
         }
 
         val token = jwtService.generateToken(normalizedEmail)
+        redisService.saveValue("session:$normalizedEmail", token, 86400) // Store active session
         return AuthResponse(
             token = token,
             userId = user.id.toString(),
@@ -146,6 +147,7 @@ class AuthService(
         }
 
         val token = jwtService.generateToken(normalizedEmail)
+        redisService.saveValue("session:$normalizedEmail", token, 86400) // Store active session
         return AuthResponse(
             token = token,
             userId = user.id.toString(),
@@ -229,6 +231,7 @@ class AuthService(
         }
 
         val token = jwtService.generateToken(email)
+        redisService.saveValue("session:$email", token, 86400) // Store active session
         return AuthResponse(
             token = token,
             userId = user.id.toString(),
@@ -274,6 +277,7 @@ class AuthService(
         }
 
         val token = jwtService.generateToken(mobile)
+        redisService.saveValue("session:$mobile", token, 86400) // Store active session
         return AuthResponse(
             token = token,
             userId = user.id.toString(),

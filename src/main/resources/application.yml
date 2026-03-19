@@ -1,0 +1,65 @@
+
+spring:
+  profiles:
+    active: dev   # Change to 'prod' on VPS: java -jar app.jar --spring.profiles.active=prod
+  application:
+    name: rajasthan-exams-backend
+  datasource:
+    url: jdbc:postgresql://localhost:5432/${POSTGRES_PROD_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate   # Flyway manages schema — Hibernate only validates
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    baseline-on-migrate: true  # Required: existing DB already has tables
+    baseline-version: 1        # Treat V1 as already applied
+    locations: classpath:db/migration
+  mail:
+    host: smtp.zeptomail.in
+    port: 587
+    username: emailapikey
+    password: ${MAIL_TOKEN:your-zeptomail-send-mail-token}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ${REDIS_PASSWORD}
+      database: 0
+
+logging:
+  level:
+    org.springframework: INFO
+    com.rajasthanexams: DEBUG
+
+# Razorpay keys are now in application-dev.yml and application-prod.yml
+# Do NOT put keys here
+
+jwt:
+  expiration: 2592000000   # 30 days in milliseconds
+
+admin:
+  username: ${ADMIN_USER:admin}
+  password: ${ADMIN_PASS:admin@123}
+
+# App remote config — change play-store-url here anytime without touching Android code
+app:
+  google:
+    client-id: ${GOOGLE_CLIENT_ID}
+  play-store-url:  ${PLAY_STORE_URL}
+  coin-value: 0.10                 # ₹ value per coin (1 coin = ₹0.10)
+  max-coin-discount-percent: 10    # Max % of exam price payable by coins
+  mail:
+    from: ${MAIL_FROM:noreply@yourdomain.com}   # ZeptoMail verified sender address
