@@ -45,7 +45,7 @@ logging:
     com.rajasthanexams: DEBUG
 
 jwt:
-  expiration: 2592000000   # 30 days in milliseconds
+  expiration: 315360000000   # 10 years in milliseconds (essentially never expires)
 
 admin:
   username: ${ADMIN_USER:admin}

@@ -38,8 +38,14 @@ class JwtAuthenticationFilter(
             val activeToken = redisService.getValue("session:$username")
             
             // Only proceed if this token matches the one currently active in Redis
-            if (activeToken == jwt && SecurityContextHolder.getContext().authentication == null) {
+            // If activeToken is null (e.g., Redis restarted or key expired early), we trust the JWT if it's still valid
+            if ((activeToken == jwt || activeToken == null) && SecurityContextHolder.getContext().authentication == null) {
                 if (jwtService.isTokenValid(jwt, username)) {
+                    // Restore the session in Redis if it was missing 
+                    if (activeToken == null) {
+                        redisService.saveValue("session:$username", jwt, 315360000)
+                    }
+
                     val authToken = UsernamePasswordAuthenticationToken(
                         username,
                         null,
