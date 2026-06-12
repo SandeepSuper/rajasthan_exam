@@ -1,6 +1,7 @@
 package com.rajasthanexams.backend.controller
 
 import com.rajasthanexams.backend.service.JwtService
+import com.rajasthanexams.backend.service.RedisService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -13,7 +14,8 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/api/admin-auth")
 class AdminAuthController(
-    private val jwtService: JwtService
+    private val jwtService: JwtService,
+    private val redisService: RedisService
 ) {
 
     @Value("\${admin.username:admin}")
@@ -33,6 +35,10 @@ class AdminAuthController(
 
         // Generate a JWT using the admin username as the subject
         val token = jwtService.generateToken(adminUsername)
+        
+        // Store the new token in Redis to invalidate any previous active sessions
+        redisService.saveValue("session:$adminUsername", token, 315360000)
+        
         return ResponseEntity.ok(mapOf(
             "token" to token,
             "username" to adminUsername,
