@@ -108,14 +108,23 @@ data class SubmitTestRequest(
 )
 
 data class TestResultResponse(
-    val attemptId: UUID,
+    val attemptId: UUID?,            // null when the attempt was practice only (not saved)
     val score: Double,
     val totalQuestions: Int,
     val accuracy: Float,
     val correctAnswers: Int,
     val coinsEarned: Int = 0,
     val newTotalCoins: Int = 0, // Added
-    val solutions: Map<UUID, Int> // Map of QuestionID to CorrectOptionIndex (Simple solution for now)
+    val solutions: Map<UUID, Int>, // Map of QuestionID to CorrectOptionIndex
+    val solutionDetails: Map<UUID, SolutionDetail> = emptyMap(), // answer + explanation per question
+    val countedForRank: Boolean = true, // false for live-test retakes / late attempts
+    val message: String? = null
+)
+
+data class SolutionDetail(
+    val correctOptionIndex: Int,
+    val solutionHi: String?,
+    val solutionEn: String?
 )
 
 data class BookmarkRequest(

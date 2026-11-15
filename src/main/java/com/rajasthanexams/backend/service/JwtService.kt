@@ -30,8 +30,23 @@ class JwtService {
         return claimsResolver.apply(claims)
     }
 
-    fun generateToken(username: String): String {
-        return buildToken(HashMap(), username, jwtExpiration)
+    fun generateToken(username: String, client: String? = null): String {
+        val claims = HashMap<String, Any>()
+        if (client != null) claims["client"] = client
+        return buildToken(claims, username, jwtExpiration)
+    }
+
+    /** Returns "web" for tokens issued to the website, null for the Android app / admin. */
+    fun extractClient(token: String): String? {
+        return extractClaim(token) { it["client"] as? String }
+    }
+
+    companion object {
+        const val CLIENT_WEB = "web"
+
+        /** Redis key holding the active token for this user on this client. */
+        fun sessionKey(username: String, client: String?): String =
+            if (client == CLIENT_WEB) "session:web:$username" else "session:$username"
     }
 
     private fun buildToken(

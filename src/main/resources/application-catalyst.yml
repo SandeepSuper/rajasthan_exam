@@ -1,0 +1,28 @@
+# ─── Catalyst / AppSail Profile ───────────────────────────────
+# Active when: SPRING_PROFILES_ACTIVE=catalyst  (AppSail env variable)
+# Overrides prod defaults for Zoho Catalyst AppSail deployment.
+# Neon (Postgres) + Upstash (Redis) as external services.
+
+server:
+  port: ${X_ZOHO_CATALYST_LISTEN_PORT:8080}
+
+razorpay:
+  key:
+    id: ${RAZORPAY_KEY_ID}
+    secret: ${RAZORPAY_KEY_SECRET}
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      username: ${SPRING_DATA_REDIS_USERNAME:default}
+      password: ${REDIS_PASSWORD}
+      database: ${SPRING_DATA_REDIS_DATABASE:0}
+      ssl:
+        enabled: ${SPRING_DATA_REDIS_SSL_ENABLED:true}

@@ -142,19 +142,15 @@ class LeaderboardService(
     }
 
     fun syncCoins(mobile: String, localCoins: Int): Int {
-        val user = userRepository.findByMobile(mobile)
+        // The JWT subject is the email for email/Google users and the mobile for old OTP users.
+        val user = userRepository.findByEmail(mobile)
+            .or { userRepository.findByMobile(mobile) }
             .orElseThrow { IllegalArgumentException("User not found") }
-        
-        val serverCoins = user.coins ?: 0
-        
-        // Only update if local coins are higher (prevents abuse)
-        if (localCoins > serverCoins) {
-            user.coins = localCoins
-            userRepository.save(user)
-            println("Synced user ${user.id} coins: $serverCoins -> $localCoins")
-            return localCoins
-        }
-        
-        return serverCoins
+
+        // The server is the only source of truth for coins: they are earned on test submit,
+        // referrals and purchases. A coin count sent by the app is never trusted (anyone could
+        // send any number). The endpoint stays so older app versions keep working; it now just
+        // returns the server balance so the app can correct its local copy.
+        return user.coins ?: 0
     }
 }

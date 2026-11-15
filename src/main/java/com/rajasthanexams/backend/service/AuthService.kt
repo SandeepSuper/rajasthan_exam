@@ -3,6 +3,8 @@ package com.rajasthanexams.backend.service
 import com.rajasthanexams.backend.dto.AuthResponse
 import com.rajasthanexams.backend.dto.OtpResponse
 import com.rajasthanexams.backend.dto.ApiResponse
+import com.rajasthanexams.backend.dto.UpdateProfileRequest
+import org.springframework.transaction.annotation.Transactional
 import com.rajasthanexams.backend.model.AppConfig
 import com.rajasthanexams.backend.model.User
 import com.rajasthanexams.backend.repository.AppConfigRepository
@@ -26,6 +28,20 @@ class AuthService(
     private val emailService: EmailService,
     private val appConfigRepository: AppConfigRepository
 ) {
+
+    /**
+     * Creates a JWT and stores it as the active session.
+     * Web (header "X-Client: web") and Android get separate session slots,
+     * so logging in on the website does not log the user out of the app.
+     */
+    private fun issueToken(subject: String): String {
+        val request = (org.springframework.web.context.request.RequestContextHolder.getRequestAttributes()
+                as? org.springframework.web.context.request.ServletRequestAttributes)?.request
+        val client = if (request?.getHeader("X-Client")?.lowercase() == "web") JwtService.CLIENT_WEB else null
+        val token = jwtService.generateToken(subject, client)
+        redisService.saveValue(JwtService.sessionKey(subject, client), token, 315360000)
+        return token
+    }
 
     @Value("\${app.google.client-id}")
     private lateinit var googleClientId: String
@@ -113,8 +129,7 @@ class AuthService(
             }
         }
 
-        val token = jwtService.generateToken(normalizedEmail)
-        redisService.saveValue("session:$normalizedEmail", token, 315360000) // Store active session
+        val token = issueToken(normalizedEmail)
         return AuthResponse(
             token = token,
             userId = user.id.toString(),
@@ -146,8 +161,7 @@ class AuthService(
             throw IllegalArgumentException("Email not verified. Please check your inbox for the OTP.")
         }
 
-        val token = jwtService.generateToken(normalizedEmail)
-        redisService.saveValue("session:$normalizedEmail", token, 315360000) // Store active session
+        val token = issueToken(normalizedEmail)
         return AuthResponse(
             token = token,
             userId = user.id.toString(),
@@ -230,8 +244,7 @@ class AuthService(
             userRepository.save(user)
         }
 
-        val token = jwtService.generateToken(email)
-        redisService.saveValue("session:$email", token, 315360000) // Store active session
+        val token = issueToken(email)
         return AuthResponse(
             token = token,
             userId = user.id.toString(),
@@ -276,8 +289,7 @@ class AuthService(
             userRepository.save(user)
         }
 
-        val token = jwtService.generateToken(mobile)
-        redisService.saveValue("session:$mobile", token, 315360000) // Store active session
+        val token = issueToken(mobile)
         return AuthResponse(
             token = token,
             userId = user.id.toString(),
@@ -293,16 +305,56 @@ class AuthService(
 
     // ─── Profile Update ─────────────────────────────────────────────
 
-    fun updateProfile(userId: String, name: String, email: String, profilePicture: String?, referredByCode: String? = null): User {
-        val emailRegex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$"
-        if (!email.matches(emailRegex.toRegex())) throw IllegalArgumentException("Invalid email format")
-
-        val user = userRepository.findById(java.util.UUID.fromString(userId))
+    /**
+     * Updates the profile of the logged-in user ([subject] = JWT subject: email, or mobile for old OTP users).
+     * Name, picture and (optionally) mobile can change freely. The email is the login identity, so it can
+     * only be set when the account has none yet, and never to an address another account uses.
+     */
+    @Transactional
+    fun updateProfile(subject: String, request: UpdateProfileRequest): User {
+        val user = userRepository.findByEmail(subject)
+            .or { userRepository.findByMobile(subject) }
             .orElseThrow { IllegalArgumentException("User not found") }
+        if (!request.userId.isNullOrBlank() && request.userId != user.id.toString()) {
+            throw IllegalArgumentException("Aap sirf apni profile badal sakte hain.")
+        }
+
+        val name = request.name.trim()
+        if (name.isEmpty()) throw IllegalArgumentException("Naam khaali nahi ho sakta.")
+
+        val email = request.email.trim().lowercase()
+        val emailRegex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$"
+        val currentEmail = user.email?.trim()?.lowercase()
+        if (currentEmail.isNullOrEmpty()) {
+            if (email.isNotEmpty()) {
+                if (!email.matches(emailRegex.toRegex())) throw IllegalArgumentException("Invalid email format")
+                val other = userRepository.findByEmail(email).orElse(null)
+                if (other != null && other.id != user.id) throw IllegalArgumentException("Yeh email kisi aur account mein use ho raha hai.")
+                user.email = email
+            }
+        } else if (email.isNotEmpty() && email != currentEmail) {
+            throw IllegalArgumentException("Email badla nahi ja sakta.")
+        }
+
+        if (request.updateMobile) {
+            val mobile = request.mobile?.trim().orEmpty()
+            if (mobile.isNotEmpty() && !mobile.matches(Regex("^[6-9]\\d{9}$"))) {
+                throw IllegalArgumentException("Sahi 10-digit mobile number daalein.")
+            }
+            if (mobile.isNotEmpty()) {
+                val other = userRepository.findByMobile(mobile).orElse(null)
+                if (other != null && other.id != user.id) throw IllegalArgumentException("Yeh mobile number kisi aur account mein use ho raha hai.")
+            }
+            // Old OTP users log in with their mobile; changing it would lock them out.
+            if (user.mobile != null && subject == user.mobile && mobile != user.mobile) {
+                throw IllegalArgumentException("Login wala mobile number badla nahi ja sakta.")
+            }
+            user.mobile = mobile.ifEmpty { null }
+        }
 
         user.name = name
-        user.email = email
-        user.profilePicture = profilePicture
+        user.profilePicture = request.profilePicture
+        val referredByCode = request.referredByCode
 
         if (!referredByCode.isNullOrBlank() && user.referredBy.isNullOrBlank()) {
             val config = appConfigRepository.findById(1L).orElseGet {

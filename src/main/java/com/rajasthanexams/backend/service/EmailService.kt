@@ -13,7 +13,12 @@ class EmailService(
     @Value("\${app.mail.from:noreply@yourdomain.com}")
     private lateinit var fromEmail: String
 
+    // Set app.mail.enabled=false for local runs without a mail token; the OTP is still logged by AuthService.
+    @Value("\${app.mail.enabled:true}")
+    private var mailEnabled: Boolean = true
+
     fun sendOtpEmail(toEmail: String, otp: String) {
+        if (!mailEnabled) return
         val message: MimeMessage = mailSender.createMimeMessage()
         val helper = MimeMessageHelper(message, true, "UTF-8")
 

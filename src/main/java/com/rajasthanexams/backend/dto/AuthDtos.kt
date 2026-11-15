@@ -65,11 +65,13 @@ data class AuthResponse(
 )
 
 data class UpdateProfileRequest(
-    val userId: String,
+    val userId: String? = null,      // ignored for identity (the token decides); must match if sent
     val name: String,
     val email: String,
     val profilePicture: String? = null,
-    val referredByCode: String? = null
+    val referredByCode: String? = null,
+    val updateMobile: Boolean = false, // true = also save `mobile` (null/blank clears it)
+    val mobile: String? = null
 )
 
 data class ApiResponse(

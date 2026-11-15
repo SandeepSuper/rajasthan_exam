@@ -180,15 +180,28 @@ class ContentService(
                 val row = rows[i]
                 if (row.size < 13) continue // specific to our format check
 
-                // Format:
                 // 0: textEn, 1: textHi
-                // 2: optA_En, 3: optB_En, 4: optC_En, 5: optD_En
-                // 6: optA_Hi, 7: optB_Hi, 8: optC_Hi, 9: optD_Hi
-                // 10: correctIndex
-                // 11: solutionEn, 12: solutionHi
+                // 2: optA_En, 3: optB_En, 4: optC_En, 5: optD_En, 6: optE_En (optional)
+                // 7: optA_Hi, 8: optB_Hi, 9: optC_Hi, 10: optD_Hi, 11: optE_Hi (optional)
+                // 12: correctIndex
+                // 13: solutionEn, 14: solutionHi
+                // 15: subject, 16: marks, 17: negativeMarks
 
-                val optionsEn = listOf(row[2], row[3], row[4], row[5])
-                val optionsHi = listOf(row[6], row[7], row[8], row[9])
+                // Determine if we have 4 or 5 options based on a simple check or strict columns.
+                // For flexibility, if column 12 is a number, we assume 5 options format.
+                // If column 10 is a number, we assume 4 options format.
+                
+                val isFiveOptions = row.size > 12 && row[12].toIntOrNull() != null
+                
+                val optionsEn = if (isFiveOptions) listOf(row[2], row[3], row[4], row[5], row[6]).filter { it.isNotBlank() } else listOf(row[2], row[3], row[4], row[5])
+                val optionsHi = if (isFiveOptions) listOf(row[7], row[8], row[9], row[10], row[11]).filter { it.isNotBlank() } else listOf(row[6], row[7], row[8], row[9])
+                
+                val correctIndexCol = if (isFiveOptions) 12 else 10
+                val solutionEnCol = if (isFiveOptions) 13 else 11
+                val solutionHiCol = if (isFiveOptions) 14 else 12
+                val subjectCol = if (isFiveOptions) 15 else 13
+                val marksCol = if (isFiveOptions) 16 else 14
+                val negMarksCol = if (isFiveOptions) 17 else 15
                 
                 val q = Question(
                     test = test,
@@ -196,12 +209,12 @@ class ContentService(
                     textHi = row[1],
                     optionsEn = optionsEn,
                     optionsHi = optionsHi,
-                    correctOptionIndex = row[10].toIntOrNull() ?: 0,
-                    solutionEn = row[11],
-                    solutionHi = row[12],
-                    subject = if (row.size > 13 && row[13].isNotBlank()) row[13] else null,
-                    marksPerQuestion = if (row.size > 14 && row[14].isNotBlank()) row[14].toDoubleOrNull() else null,
-                    negativeMarks = if (row.size > 15 && row[15].isNotBlank()) row[15].toDoubleOrNull() else null
+                    correctOptionIndex = row[correctIndexCol].toIntOrNull() ?: 0,
+                    solutionEn = if (row.size > solutionEnCol) row[solutionEnCol] else "",
+                    solutionHi = if (row.size > solutionHiCol) row[solutionHiCol] else "",
+                    subject = if (row.size > subjectCol && row[subjectCol].isNotBlank()) row[subjectCol] else null,
+                    marksPerQuestion = if (row.size > marksCol && row[marksCol].isNotBlank()) row[marksCol].toDoubleOrNull() else null,
+                    negativeMarks = if (row.size > negMarksCol && row[negMarksCol].isNotBlank()) row[negMarksCol].toDoubleOrNull() else null
                 )
                 questions.add(q)
             }

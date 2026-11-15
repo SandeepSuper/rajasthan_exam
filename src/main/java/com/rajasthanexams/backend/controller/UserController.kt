@@ -87,7 +87,22 @@ class UserController(
         @RequestBody body: Map<String, String?>
     ): ResponseEntity<com.rajasthanexams.backend.dto.ApiResponse> {
         val user = getUserFromToken(authHeader)
-        user.mobile = body["mobile"]
+        val mobile = body["mobile"]?.trim().orEmpty()
+        if (mobile.isNotEmpty() && !mobile.matches(Regex("^[6-9]\\d{9}$"))) {
+            return ResponseEntity.badRequest().body(com.rajasthanexams.backend.dto.ApiResponse(message = "Sahi 10-digit mobile number daalein.", success = false))
+        }
+        // Old OTP users log in with their mobile (it is the token subject); changing it would lock them out.
+        val subject = jwtService.extractUsername(authHeader.substring(7))
+        if (user.mobile != null && subject == user.mobile && mobile != user.mobile) {
+            return ResponseEntity.badRequest().body(com.rajasthanexams.backend.dto.ApiResponse(message = "Login wala mobile number badla nahi ja sakta.", success = false))
+        }
+        if (mobile.isNotEmpty()) {
+            val other = userRepository.findByMobile(mobile).orElse(null)
+            if (other != null && other.id != user.id) {
+                return ResponseEntity.badRequest().body(com.rajasthanexams.backend.dto.ApiResponse(message = "Yeh mobile number kisi aur account mein use ho raha hai.", success = false))
+            }
+        }
+        user.mobile = mobile.ifEmpty { null }
         userRepository.save(user)
         return ResponseEntity.ok(com.rajasthanexams.backend.dto.ApiResponse(message = "Mobile updated"))
     }

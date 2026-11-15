@@ -3,6 +3,7 @@ package com.rajasthanexams.backend.controller
 import com.rajasthanexams.backend.dto.QuestionResponse
 import com.rajasthanexams.backend.dto.TestResponse
 import com.rajasthanexams.backend.service.ContentService
+import com.rajasthanexams.backend.service.LiveTestRules
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
@@ -19,7 +20,8 @@ import java.util.UUID
 class TestController(
     private val contentService: ContentService,
     private val jwtService: com.rajasthanexams.backend.service.JwtService,
-    private val userRepository: com.rajasthanexams.backend.repository.UserRepository
+    private val userRepository: com.rajasthanexams.backend.repository.UserRepository,
+    private val redisService: com.rajasthanexams.backend.service.RedisService
 ) {
 
     @GetMapping("/exams")
@@ -156,9 +158,30 @@ class TestController(
     }
 
     @GetMapping("/questions")
-    @Operation(summary = "Get Questions", description = "Securely fetch questions for a test (Solutions hidden).")
-    fun getQuestions(@RequestParam testId: UUID): ResponseEntity<List<QuestionResponse>> {
+    @Operation(
+        summary = "Get Questions",
+        description = "Fetch questions for a test. While a live test is running, answers and solutions are hidden " +
+            "(correctOptionIndex = -1) until the user submits; they come back in the submit response."
+    )
+    fun getQuestions(
+        @RequestParam testId: UUID,
+        @org.springframework.web.bind.annotation.RequestHeader("Authorization", required = false) token: String?
+    ): ResponseEntity<List<QuestionResponse>> {
         val questions = contentService.getQuestions(testId)
+        val test = contentService.getTestById(testId)
+        val userId = userIdFromToken(token)
+        val hideAnswers = LiveTestRules.isAnswerWindowOpen(test) &&
+            (userId == null || !contentService.hasUserAttemptedTest(testId, userId))
+
+        // Start the server-side clock for this attempt (first load only; reloads keep it).
+        if (userId != null) {
+            try {
+                redisService.markAttemptStart(userId.toString(), testId.toString(), test.durationMinutes * 60L + 6 * 3600L)
+            } catch (e: Exception) {
+                println("Could not record attempt start: ${e.message}")
+            }
+        }
+
         val response = questions.map {
             QuestionResponse(
                 id = it.id!!,
@@ -166,9 +189,9 @@ class TestController(
                 textEn = it.textEn,
                 optionsHi = it.optionsHi,
                 optionsEn = it.optionsEn,
-                correctOptionIndex = it.correctOptionIndex,
-                solutionHi = it.solutionHi,
-                solutionEn = it.solutionEn,
+                correctOptionIndex = if (hideAnswers) LiveTestRules.HIDDEN_ANSWER else it.correctOptionIndex,
+                solutionHi = if (hideAnswers) null else it.solutionHi,
+                solutionEn = if (hideAnswers) null else it.solutionEn,
                 subject = it.subject,
                 marksPerQuestion = it.marksPerQuestion,
                 negativeMarks = it.negativeMarks
@@ -176,6 +199,16 @@ class TestController(
         }
         return ResponseEntity.ok(response)
     }
+    private fun userIdFromToken(token: String?): UUID? {
+        if (token.isNullOrEmpty() || !token.startsWith("Bearer ")) return null
+        return try {
+            val username = jwtService.extractUsername(token.substring(7))
+            userRepository.findByEmail(username).orElseGet { userRepository.findByMobile(username).orElse(null) }?.id
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     @org.springframework.web.bind.annotation.PostMapping("/seed-live")
     fun seedLiveTest(): ResponseEntity<String> {
         return try {

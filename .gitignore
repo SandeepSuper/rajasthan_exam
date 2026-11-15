@@ -26,3 +26,8 @@ Thumbs.db
 
 *.txt
 *.ps1
+# MCP server
+mcp-server/.env
+mcp-server/node_modules/
+mcp-server/dist/
+mcp-server/*.zip

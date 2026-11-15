@@ -144,6 +144,25 @@ class RedisService(
     /** Get any string value by key */
     fun getValue(key: String): String? = redisTemplate.opsForValue().get(key)
 
+    // ─── Test attempt timing (server clock, so the browser can't fake it) ───
+
+    private fun attemptKey(userId: String, testId: String) = "attempt:start:$userId:$testId"
+
+    /** Records when the user first loaded this test's questions. Keeps the first time on reloads/resume. */
+    fun markAttemptStart(userId: String, testId: String, ttlSeconds: Long) {
+        redisTemplate.opsForValue().setIfAbsent(
+            attemptKey(userId, testId), System.currentTimeMillis().toString(), Duration.ofSeconds(ttlSeconds)
+        )
+    }
+
+    /** Start time in epoch millis, or null if unknown (e.g. Redis restarted). */
+    fun getAttemptStart(userId: String, testId: String): Long? =
+        redisTemplate.opsForValue().get(attemptKey(userId, testId))?.toLongOrNull()
+
+    fun clearAttemptStart(userId: String, testId: String) {
+        redisTemplate.delete(attemptKey(userId, testId))
+    }
+
     /** Delete any key by exact key name */
     fun deleteValue(key: String) {
         redisTemplate.delete(key)

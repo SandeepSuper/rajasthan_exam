@@ -11,12 +11,29 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
-    private val jwtAuthFilter: JwtAuthenticationFilter
+    private val jwtAuthFilter: JwtAuthenticationFilter,
+    // Comma-separated list of website origins allowed to call the API from a browser
+    @org.springframework.beans.factory.annotation.Value("\${app.cors.allowed-origins:http://localhost:5173}")
+    private val allowedOrigins: String
 ) {
+
+    @Bean
+    fun corsConfigurationSource(): org.springframework.web.cors.CorsConfigurationSource {
+        val config = org.springframework.web.cors.CorsConfiguration()
+        config.allowedOrigins = allowedOrigins.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+        config.allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+        config.allowedHeaders = listOf("Authorization", "Content-Type", "X-Client")
+        config.allowCredentials = true // the website's login cookie
+        config.maxAge = 3600
+        val source = org.springframework.web.cors.UrlBasedCorsConfigurationSource()
+        source.registerCorsConfiguration("/api/**", config)
+        return source
+    }
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
+            .cors { }
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth
