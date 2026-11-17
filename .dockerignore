@@ -1,0 +1,9 @@
+build
+.gradle
+.idea
+bin
+mcp-server
+*.log
+*.txt
+*.csv
+*.md
